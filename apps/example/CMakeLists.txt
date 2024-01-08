@@ -1,8 +1,8 @@
 project(example)
-add_executable(example.main example.cc)
+add_executable(example.pump pump.cc)
 
 link_directories("/usr/lib")
-target_link_libraries (example.main
+target_link_libraries (example.pump
         -ltbb
         -pg
         -Wl,--whole-archive  ${SPDK1_LIBRARIES} -Wl,--no-whole-archive

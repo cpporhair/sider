@@ -30,23 +30,6 @@
 using namespace sider::coro;
 using namespace sider::pump;
 using namespace sider::meta;
-using namespace sider::kv;
-
-using name = std::string;
-
-auto
-generate_kv_seed(uint32_t count) -> return_yields<uint64_t> {
-    for (uint64_t i = 0; i < count; ++i)
-        co_yield i;
-    co_return 0;
-}
-
-auto
-new_kv(uint64_t seed) {
-    return then([](...){
-        return (data::key_value*)nullptr;
-    });
-}
 
 int
 main(int argc, char **argv) {

@@ -1,11 +1,13 @@
 # sider
 
-sider is a kv store similar to redis. Use nvme ssd to scale to larger capacities while maintaining speed.
+The goal of sider is to implement a redis-like kv store. Use nvme ssd to scale to larger capacities while maintaining speed!
 
-sider using self-developed std::execution(p2300) implementation (pump) as asynchronous and concurrent framework , 
-pump is not perfect , but more suitable for my project . 
-If you want a comprehensive understanding of p2300, please refer to [here](https://github.com/brycelelbach/wg21_p2300_execution), 
-if you want to find a more general, more standard/excellent std::execution implementation, please refer to [here](https://github.com/NVIDIA/stdexec).
+sider uses its own std::execution(p2300) implementation (pump) as an asynchronous and concurrent framework. 
+pump isn't perfect, but it's better suited to my project. 
+
+If you want to learn more about p2300, see [here](https://github.com/brycelelbach/wg21_p2300_execution); 
+
+if you want to find a more general, standard, and elegant implementation of std::execution, see [here](https://github.com/NVIDIA/stdexec).
 
 **sider is still in development, not yet tested or used.**
 

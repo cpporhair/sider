@@ -1,22 +1,31 @@
-# sider
+//
 
-sider is a kv store similar to redis. Use nvme ssd to scale to larger capacities while maintaining speed.
+//
 
-sider using self-developed std::execution(p2300) implementation (pump) as asynchronous and concurrent framework , 
-pump is not perfect , but more suitable for my project . 
-If you want a comprehensive understanding of p2300, please refer to [here](https://github.com/brycelelbach/wg21_p2300_execution), 
-if you want to find a more general, more standard/excellent std::execution implementation, please refer to [here](https://github.com/NVIDIA/stdexec).
+#include <iostream>
+#include <ranges>
+#include <any>
 
-**sider is still in development, not yet tested or used.**
+#include "sider/pump/just.hh"
+#include "sider/pump/concurrent.hh"
+#include "sider/pump/reduce.hh"
+#include "sider/pump/sequential.hh"
+#include "sider/pump/when_all.hh"
+#include "sider/coro/coro.hh"
+#include "sider/kv/start_db.hh"
+#include "sider/kv/start_batch.hh"
+#include "sider/kv/put.hh"
+#include "sider/kv/make_kv.hh"
+#include "sider/kv/apply.hh"
+#include "sider/kv/scan.hh"
+#include "sider/kv/stop_db.hh"
+#include "sider/kv/get.hh"
 
-- [x] basic std::execution framework
-- [x] basic kv functions
-- [x] batch
-- [ ] io_uring-based network
-- [ ] resp
-- [ ] redis datatype
 
-```c++
+
+#include "./statistic.hh"
+#include "./ycsb.hh"
+
 using namespace sider::coro;
 using namespace sider::pump;
 using namespace sider::kv;
@@ -42,6 +51,3 @@ main(int argc, char **argv){
     });
     return 0;
 }
-```
-
-Looking for C++/database jobs(china beijing or remote)

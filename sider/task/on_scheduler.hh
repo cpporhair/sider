@@ -11,6 +11,7 @@
 #include "spdk/nvme.h"
 
 #include "sider/pump/op_pusher.hh"
+#include "sider/pump/compute_sender_type.hh"
 
 namespace sider::task {
     namespace _on_scheduler {
@@ -83,17 +84,17 @@ namespace sider::task {
     on_scheduler_able {
     protected:
         void* cmd[16];
-        spdk_ring* on_scheduler_redo_req_queue;
+        spdk_ring* on_scheduler_req_queue;
 
         inline
         auto
         schedule(_on_scheduler::req<impl_t>* req) {
-            assert(0 < spdk_ring_enqueue(on_scheduler_redo_req_queue, (void**)&req, 1, nullptr));
+            assert(0 < spdk_ring_enqueue(on_scheduler_req_queue, (void**)&req, 1, nullptr));
         }
 
         void
         handle_on_scheduler() {
-            size_t size = spdk_ring_dequeue(on_scheduler_redo_req_queue, cmd, 16);
+            size_t size = spdk_ring_dequeue(on_scheduler_req_queue, cmd, 16);
             for (uint32_t i = 0; i < size; ++i) {
                 auto* req = (_on_scheduler::req<impl_t>*)cmd[i];
                 req->cb(reinterpret_cast<impl_t *>(this));
@@ -105,6 +106,10 @@ namespace sider::task {
         auto
         on_scheduler() {
             return _on_scheduler::sender(reinterpret_cast<impl_t *>(this));
+        }
+
+        on_scheduler_able()
+            : on_scheduler_req_queue(spdk_ring_create(spdk_ring_type::SPDK_RING_TYPE_MP_SC, 4096, 0)){
         }
     };
 }

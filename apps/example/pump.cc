@@ -2,8 +2,9 @@
 //
 //
 
+#include "liburing.h"
+
 #include "util/macro.hh"
-#include "util/meta.hh"
 #include "pump/flat.hh"
 #include "pump/repeat.hh"
 #include "pump/sequential.hh"
@@ -11,20 +12,10 @@
 #include "pump/visit.hh"
 #include "pump/just.hh"
 #include "pump/when_all.hh"
-#include "pump/push_context.hh"
-#include "pump/pop_context.hh"
-#include "pump/generate.hh"
-#include "pump/maybe.hh"
-#include "sider/task/any.hh"
 
 #include "sider/kv/start_db.hh"
-#include "sider/kv/start_batch.hh"
 #include "sider/kv/put.hh"
-#include "sider/kv/make_kv.hh"
-#include "sider/kv/apply.hh"
-#include "sider/kv/scan.hh"
 #include "sider/kv/stop_db.hh"
-#include "sider/kv/get.hh"
 
 
 using namespace sider::coro;
@@ -33,6 +24,7 @@ using namespace sider::meta;
 
 int
 main(int argc, char **argv) {
+
     just()
         >> when_all(
             just(1) >> then([](int a) { std::cout << a << std::endl; }),

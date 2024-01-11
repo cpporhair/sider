@@ -158,8 +158,7 @@ namespace sider::kv {
                             return pump::just(std::make_exception_ptr(new data::allocate_page_failed()));
                         }
                         else {
-                            static_assert(std::is_same_v<fs::_allocate::failed_res, __typ__(res)>);
-                            throw data::absolutely_not_code_block();
+                            static_assert(false);
                         }
                     })
                     >> pump::flat()

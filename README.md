@@ -2,12 +2,11 @@
 
 The goal of sider is to implement a redis-like kv store. Use nvme ssd to scale to larger capacities while maintaining speed!
 
-sider uses its own std::execution(p2300) implementation (pump) as an asynchronous and concurrent framework. 
-pump isn't perfect, but it's better suited to my project. 
+sider uses its own std::execution(p2300) implementation (pump) as an asynchronous and concurrent framework.
 
-If you want to learn more about p2300, see [here](https://github.com/brycelelbach/wg21_p2300_execution); 
+For learn more about p2300, see [here](https://github.com/brycelelbach/wg21_p2300_execution); 
 
-if you want to find a more general, standard, and elegant implementation of std::execution, see [here](https://github.com/NVIDIA/stdexec).
+For a standard implementation of the p2300, see  [here](https://github.com/NVIDIA/stdexec).
 
 **sider is still in development, not yet tested or used.**
 
@@ -21,29 +20,33 @@ if you want to find a more general, standard, and elegant implementation of std:
 ```c++
 using namespace sider::coro;
 using namespace sider::pump;
+using namespace sider::meta;
+using namespace sider::net;
 using namespace sider::kv;
-using namespace ycsb;
-
-uint64_t max_key = 10000000;
 
 int
-main(int argc, char **argv){
+main(int argc, char **argv) {
     start_db(argc, argv)([](){
-        return with_context(statistic_helper(new statistic_data()), logger())(
-                start_statistic()
-                    >> generate_on(any_task_scheduler(), std::views::iota(uint64_t(0), max_key))
-                    >> output_statistics_per_sec()
-                    >> as_task()
-                    >> concurrent(10000)
-                    >> as_batch(make_kv() >> put() >> apply() >> statistic_put()) >> statistic_publish()
-                    >> count()
-                    >> stop_statistic()
-                    >> output_finally_statistics()
-            )
-            >> stop_db();
+        return forever()
+            >> ignore_args()
+            >> flat_map(sider::net::io_uring::wait_connection)
+            >> concurrent()
+            >> flat_map([](int socket){
+                return sider::task::just_task()
+                    >> with_context(session{socket})([](){
+                        return forever()
+                            >> ignore_inner_exception(
+                                read_cmd()
+                                    >> concurrent() >> handle_command()
+                                    >> sequential() >> send_result()
+                            )
+                            >> reduce();
+                    });
+            })
+            >> reduce();
     });
     return 0;
 }
 ```
 
-Looking for C++/database jobs(china beijing or remote)
+Looking for job opportunities in c++ or database development (beijing or remote)

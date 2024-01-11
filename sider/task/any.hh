@@ -16,6 +16,12 @@ namespace sider::task {
         return pump::on(((scheduler*) nullptr)->get_scheduler());
     }
 
+    static
+    auto
+    just_task() {
+        return ((scheduler*) nullptr)->get_scheduler();
+    }
+
     inline
     auto
     as_task() {

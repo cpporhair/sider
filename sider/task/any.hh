@@ -18,7 +18,7 @@ namespace sider::task {
 
     static
     auto
-    just_task() {
+    start_as_task() {
         return ((scheduler*) nullptr)->get_scheduler();
     }
 

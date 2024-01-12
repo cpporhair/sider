@@ -12,15 +12,6 @@
 #include "./data/kv.hh"
 
 namespace sider::kv {
-    auto
-    put(data::key_value&& kv) {
-        return pump::get_context<data::batch*>()
-            >> pump::then([f = new data::key_value(kv.file)](data::batch* b) mutable {
-                std::cout << f->file << f->file->key_seed() << std::endl;
-                b->put(data::key_value{f->file});
-                delete f;
-            });
-    }
 
     auto
     put() {
@@ -28,6 +19,12 @@ namespace sider::kv {
             >> pump::then([](data::batch* b, data::key_value&& kv) mutable {
                 b->put(__fwd__(kv));
             });
+    }
+
+    inline
+    auto
+    put(data::key_value&& kv) {
+        return pump::forward_value(__fwd__(kv)) >> put();
     }
 
     auto

@@ -1,7 +1,7 @@
 //
 //
 //
-
+#include <exception>
 #include "util/macro.hh"
 #include "pump/flat.hh"
 #include "pump/repeat.hh"
@@ -13,46 +13,73 @@
 
 #include "sider/kv/start_db.hh"
 #include "sider/kv/put.hh"
+#include "sider/kv/get.hh"
+#include "sider/kv/apply.hh"
+#include "sider/kv/start_batch.hh"
+#include "sider/kv/finish_batch.hh"
 #include "sider/kv/stop_db.hh"
 #include "sider/net/io_uring/wait_connection.hh"
 #include "sider/net/io_uring/recv.hh"
-#include "sider/net/io_uring/session.hh"
+#include "sider/net/resp/read_cmd.hh"
 
 
 using namespace sider::coro;
 using namespace sider::pump;
 using namespace sider::meta;
-using namespace sider::net;
+using namespace sider::task;
+using namespace sider::net::io_uring;
+using namespace sider::net::resp;
 using namespace sider::kv;
-
-using session = sider::net::io_uring::session;
 
 inline
 auto
-read_cmd_len() {
-    return ignore_args()
-        >> get_context<session>()
-        >> then([](session &s) {
-            return sider::net::io_uring::recv(s.socket, nullptr, 4);
-        })
-        >> flat();
+select_cmd(cmd&& c) {
+    using res = std::variant<put_cmd *, get_cmd *, scan_cmd *>;
+    auto *u = (unk_cmd *) &c;
+    switch (u->type) {
+        case cmd_type_get:
+            return res((get_cmd *) u);
+        case cmd_type_put:
+            return res((put_cmd *) u);
+        case cmd_type_scan:
+            return res((scan_cmd *) u);
+        default:
+            throw std::logic_error("unk_cmd");
+    }
 }
 
 inline
 auto
-read_cmd() {
-    return ignore_args()
-        >> get_context<session>()
-        >> then([](session &s) mutable {
-            return sider::net::io_uring::recv(s.socket, nullptr, 4);
-        })
-        >> flat();
+to_kv(put_cmd* c) {
+    return data::key_value(nullptr);
+}
+
+inline
+auto
+to_ke(get_cmd* c) {
+    return std::string("");
+}
+
+inline
+auto
+to_result() {
+    return ignore_results();
 }
 
 inline
 auto
 handle_command() {
-    return ignore_args();
+    return then([](cmd&& c){ return select_cmd(__fwd__(c)); })
+        >> visit()
+        >> then([](auto&& a) {
+            if constexpr (std::is_same_v<std::remove_pointer_t<__typ__(a)>, put_cmd>)
+                return just() >> as_batch( put(to_kv(a)) >> apply() >> to_result() );
+            else if constexpr (std::is_same_v<std::remove_pointer_t<__typ__(a)>, get_cmd>)
+                return just() >> as_batch( get(to_ke(a)) >> to_result() );
+            else
+                return just();
+        })
+        >> flat();
 }
 
 inline
@@ -61,54 +88,23 @@ send_result() {
     return ignore_args();
 }
 
-auto
-start_session(int fd) {
-    return just()
-        >> sider::task::schedule_at_any_task()
-        >> forever()
-        >> read_cmd_len()
-        >> read_cmd()
-        >> concurrent()
-        >> handle_command()
-        >> reduce()
-        >> submit(make_root_context(session{fd}));
-}
-
-inline
-auto
-wait_connection() {
-    return sider::net::io_uring::wait_connection();
-}
-
-inline
-auto
-server_loop() {
-    return forever()
-        >> ignore_args()
-        >> then(wait_connection)
-        >> flat()
-        >> then(start_session)
-        >> reduce();
-}
-
 int
 main(int argc, char **argv) {
     start_db(argc, argv)([](){
         return forever()
-            >> ignore_args()
-            >> flat_map(sider::net::io_uring::wait_connection)
+            >> flat_map(wait_connection)
             >> concurrent()
             >> flat_map([](int socket){
-                return sider::task::just_task()
-                    >> with_context(session{socket})([](){
-                        return forever()
-                            >> ignore_inner_exception(
-                                read_cmd()
-                                    >> concurrent() >> handle_command()
-                                    >> sequential() >> send_result()
-                            )
-                            >> reduce();
-                    });
+                return start_as_task()
+                    >> push_context(session{socket})
+                    >> forever()
+                    >> read_cmd()
+                    >> concurrent(100)
+                    >> ignore_inner_exception(
+                        handle_command() >> send_result()
+                    )
+                    >> reduce()
+                    >> pop_context();
             })
             >> reduce();
     });

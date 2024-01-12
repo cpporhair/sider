@@ -18,30 +18,23 @@ For a standard implementation of the p2300, see  [here](https://github.com/NVIDI
 - [ ] redis datatype
 
 ```c++
-using namespace sider::coro;
-using namespace sider::pump;
-using namespace sider::meta;
-using namespace sider::net;
-using namespace sider::kv;
-
 int
 main(int argc, char **argv) {
     start_db(argc, argv)([](){
         return forever()
-            >> ignore_args()
-            >> flat_map(sider::net::io_uring::wait_connection)
+            >> flat_map(wait_connection)
             >> concurrent()
             >> flat_map([](int socket){
-                return sider::task::just_task()
-                    >> with_context(session{socket})([](){
-                        return forever()
-                            >> ignore_inner_exception(
-                                read_cmd()
-                                    >> concurrent() >> handle_command()
-                                    >> sequential() >> send_result()
-                            )
-                            >> reduce();
-                    });
+                return start_as_task()
+                    >> push_context(session{socket})
+                    >> forever()
+                    >> read_cmd()
+                    >> concurrent(100)
+                    >> ignore_inner_exception(
+                        handle_command() >> send_result()
+                    )
+                    >> reduce()
+                    >> pop_context();
             })
             >> reduce();
     });

@@ -31,7 +31,8 @@ namespace sider::kv {
 
     auto
     finish_batch() {
-        return pump::get_context<data::batch*>()
+        return pump::assert_no_args()
+            >> pump::get_context<data::batch*>()
             >> pump::then([](data::batch* b){
                 return b->put_snapshot != nullptr;
             })

@@ -84,15 +84,6 @@ namespace sider::kv {
         }
     }
 
-    auto
-    get(const char* k) {
-        return pump::get_context<data::batch*>()
-            >> pump::then([k](data::batch* b){
-                return _get::get(b, k);
-            })
-            >> pump::flat();
-    }
-
     inline
     auto
     get() {
@@ -120,6 +111,11 @@ namespace sider::kv {
                 }
             })
             >> pump::flat();
+    }
+
+    auto
+    get(std::string&& k) {
+        return pump::forward_value(__fwd__(k)) >> get();
     }
 }
 

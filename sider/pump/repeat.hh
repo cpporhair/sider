@@ -16,7 +16,7 @@ namespace sider::pump {
 
     auto
     forever() {
-        return for_each(std::views::iota(uint32_t(0)));
+        return for_each(std::views::iota(uint32_t(0))) >> ignore_results();
     }
 }
 

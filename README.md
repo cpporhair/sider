@@ -8,14 +8,18 @@ For learn more about p2300, see [here](https://github.com/brycelelbach/wg21_p230
 
 For a standard implementation of the p2300, see  [here](https://github.com/NVIDIA/stdexec).
 
-**sider is still in development, not yet tested or used.**
+#### **sider is still in development, not yet tested or used.**
 
 - [x] basic std::execution framework
+- [x] spdk-based io
 - [x] basic kv functions
+- [x] ycsb test and iops reaches hardware limit.
 - [x] batch
 - [ ] io_uring-based network
 - [ ] resp
+- [ ] cold and hot data separation
 - [ ] redis datatype
+
 
 ```c++
 int

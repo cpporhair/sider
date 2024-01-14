@@ -68,18 +68,28 @@ to_result() {
 
 inline
 auto
+handle_command(put_cmd *c) {
+    return just() >> as_batch(put(to_kv(c)) >> apply() >> to_result());
+}
+
+inline
+auto
+handle_command(get_cmd *c) {
+    return just() >> as_batch(get(to_ke(c)) >> to_result());
+}
+
+inline
+auto
+handle_command(auto *c) {
+    return just();
+}
+
+inline
+auto
 handle_command() {
-    return then([](cmd&& c){ return select_cmd(__fwd__(c)); })
-        >> visit()
-        >> then([](auto&& a) {
-            if constexpr (std::is_same_v<std::remove_pointer_t<__typ__(a)>, put_cmd>)
-                return just() >> as_batch( put(to_kv(a)) >> apply() >> to_result() );
-            else if constexpr (std::is_same_v<std::remove_pointer_t<__typ__(a)>, get_cmd>)
-                return just() >> as_batch( get(to_ke(a)) >> to_result() );
-            else
-                return just();
-        })
-        >> flat();
+    return then(select_cmd) >> visit()
+                            >> then([](auto&& a) { return handle_command(__fwd__(a)); })
+                            >> flat();
 }
 
 inline
@@ -100,9 +110,7 @@ main(int argc, char **argv) {
                     >> forever()
                     >> read_cmd()
                     >> concurrent(100)
-                    >> ignore_inner_exception(
-                        handle_command() >> send_result()
-                    )
+                    >> ignore_inner_exception(handle_command() >> send_result())
                     >> reduce()
                     >> pop_context();
             })

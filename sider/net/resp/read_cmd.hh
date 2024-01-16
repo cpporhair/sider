@@ -51,7 +51,37 @@ namespace sider::net::resp {
     inline
     auto
     read_cmd() {
-        return read_cmd_len() >> read_cmd_detail() >> take_first_cmd();
+        return pump::ignore_args()
+            >> pump::get_context<session>()
+            >> pump::then([](session &s) mutable {
+                return sider::net::io_uring::recv(s.socket, s.pending_cmd.data, 4)
+                    >> pump::then([s](...) mutable {
+                        s.unhandled_cmd.push_back(__mov__(s.pending_cmd));
+                        s.pending_cmd.reset();
+                    });
+            })
+            >> pump::flat();
+    }
+
+    inline
+    auto
+    until_any_full_cmd(session& s) -> coro::empty_yields {
+        while(s.has_full_command())
+            co_yield {};
+        co_return {};
+    }
+
+    inline
+    auto
+    recv_cmd () {
+        return pump::ignore_args()
+            >> pump::get_context<session>()
+            >> pump::then([](session& s){ return coro::make_view_able(until_any_full_cmd(s)); })
+            >> pump::for_each()
+            >> read_cmd()
+            >> pump::reduce()
+            >> pump::ignore_args()
+            >> take_first_cmd();
     }
 }
 

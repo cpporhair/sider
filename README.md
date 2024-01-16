@@ -32,8 +32,8 @@ main(int argc, char **argv) {
                 return start_as_task()
                     >> push_context(session{socket})
                     >> forever()
-                    >> read_cmd()
-                    >> concurrent(100)
+                    >> recv_cmd()
+                    >> concurrent(max_concurrency_per_session)
                     >> ignore_inner_exception(
                         handle_command() >> send_result()
                     )

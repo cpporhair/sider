@@ -4,6 +4,8 @@
 
 #include "spdk/memory.h"
 
+#include "3rd/ringbuf/ring_buf.hh"
+
 namespace sider::net::resp {
 
     const uint32_t cmd_type_unk     = 0;
@@ -56,12 +58,19 @@ namespace sider::net::resp {
     struct
     session {
         int socket;
+        ringbuf_t* cached_data;
+
         std::list<cmd> unhandled_cmd;
         cmd pending_cmd{};
 
         explicit
         session(int fd)
             : socket(fd) {
+        }
+
+        bool
+        has_full_command() {
+            return false;
         }
     };
 }

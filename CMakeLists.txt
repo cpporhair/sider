@@ -35,4 +35,5 @@ pkg_search_module(SPDK4 REQUIRED spdk_vmd )
 
 message(" " ${SPDK5_LIBRARIES})
 
-add_subdirectory(apps/example)
+add_subdirectory(sider)
+add_subdirectory(tests/example)

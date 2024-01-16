@@ -36,8 +36,11 @@ namespace sider::net::io_uring {
                 , size(len){
             }
 
-            op(op&& rhs)
-                : scheduler(rhs.scheduler) {
+            op(op&& rhs) noexcept
+                : scheduler(rhs.scheduler)
+                , socket(rhs.socket)
+                , buffer(rhs.buffer)
+                , size(rhs.size){
             }
 
             template<uint32_t pos, typename context_t, typename scope_t>
@@ -72,11 +75,105 @@ namespace sider::net::io_uring {
             uint32_t size;
 
             sender(scheduler_t* s, int sock, void* buf, uint32_t len)
-                : scheduler(s) {
+                : scheduler(s)
+                , socket(sock)
+                , buffer(buf)
+                , size(len) {
             }
 
-            sender(sender &&rhs)
-                : scheduler(rhs.scheduler) {
+            sender(sender &&rhs) noexcept
+                : scheduler(rhs.scheduler)
+                , socket(rhs.socket)
+                , buffer(rhs.buffer)
+                , size(rhs.size) {
+            }
+
+            inline
+            auto
+            make_op(){
+                return op<scheduler_t>(scheduler, socket, buffer, size);
+            }
+
+            template<typename context_t>
+            auto
+            connect() {
+                return pump::builder::op_list_builder<0>().push_back(make_op());
+            }
+        };
+    }
+
+    namespace _send {
+        struct
+        req {
+            int socket;
+            void* buf;
+            uint32_t size;
+            std::move_only_function<void(bool)> cb;
+        };
+
+        template <typename scheduler_t>
+        struct
+        op {
+            constexpr static bool net_io_uring_send_op = true;
+            scheduler_t* scheduler;
+            int socket;
+            void* buffer;
+            uint32_t size;
+
+            op(scheduler_t* s, int sock, void* buf, uint32_t len)
+                : scheduler(s)
+                , socket(sock)
+                , buffer(buf)
+                , size(len){
+            }
+
+            op(op&& rhs) noexcept
+                : scheduler(rhs.scheduler)
+                , socket(rhs.socket)
+                , buffer(rhs.buffer)
+                , size(rhs.size) {
+            }
+
+            template<uint32_t pos, typename context_t, typename scope_t>
+            auto
+            start(context_t &context, scope_t &scope) {
+                return scheduler->schedule(
+                    new req{
+                        socket,
+                        buffer,
+                        size,
+                        [context = context, scope = scope](bool succeed) mutable {
+                            pump::pusher::op_pusher<pos + 1, scope_t>::push_value(
+                                context,
+                                scope,
+                                succeed
+                            );
+                        }
+                    }
+                );
+            }
+        };
+
+        template<typename scheduler_t>
+        struct
+        sender {
+            scheduler_t* scheduler;
+            int socket;
+            void* buffer;
+            uint32_t size;
+
+            sender(scheduler_t* s, int sock, void* buf, uint32_t len)
+                : scheduler(s)
+                , socket(sock)
+                , buffer(buf)
+                , size(len){
+            }
+
+            sender(sender &&rhs) noexcept
+                : scheduler(rhs.scheduler)
+                , socket(rhs.socket)
+                , buffer(rhs.buffer)
+                , size(rhs.size){
             }
 
             inline
@@ -112,6 +209,19 @@ namespace sider::net::io_uring {
             io_uring_sqe_set_data(sqe, req);
         }
 
+        auto
+        schedule(_send::req* req) {
+            io_uring_sqe *sqe = io_uring_get_sqe(&ring);
+            auto* io_req = (io_uring_request*)malloc(sizeof(io_uring_request) + sizeof(struct iovec));
+            io_req->iov[0].iov_base = req->buf;
+            io_req->iov[0].iov_len = req->size;
+            io_req->event_type = uring_event_type::write;
+            io_req->client_socket = req->socket;
+            io_req->user_data = req;
+            io_uring_prep_writev(sqe, req->socket, &io_req->iov[0], 1, 0);
+            io_uring_sqe_set_data(sqe, req);
+        }
+
         void
         handle_io() {
             io_uring_cqe *cqe;
@@ -128,8 +238,8 @@ namespace sider::net::io_uring {
                         break;
                     }
                     case uring_event_type::write: {
-                        auto *req = (_recv::req*)uring_req->user_data;
-                        req->cb(req->socket, req->buf, req->size, true);
+                        auto *req = (_send::req*)uring_req->user_data;
+                        req->cb(true);
                         delete req;
                         free(uring_req);
                         break;
@@ -147,6 +257,11 @@ namespace sider::net::io_uring {
         auto
         recv(int socket, void* buf, uint32_t size) {
             return _recv::sender<session_scheduler>(this, socket, buf, size);
+        }
+
+        auto
+        send(int socket, void* buf, uint32_t size) {
+            return _send::sender<session_scheduler>(this, socket, buf, size);
         }
 
         void

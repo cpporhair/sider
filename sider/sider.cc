@@ -1,6 +1,3 @@
-//
-//
-//
 #include <exception>
 #include "util/macro.hh"
 #include "pump/flat.hh"
@@ -30,6 +27,8 @@ using namespace sider::task;
 using namespace sider::net::io_uring;
 using namespace sider::net::resp;
 using namespace sider::kv;
+
+constexpr uint32_t max_concurrency_per_session = 100;
 
 inline
 auto
@@ -108,9 +107,11 @@ main(int argc, char **argv) {
                 return start_as_task()
                     >> push_context(session{socket})
                     >> forever()
-                    >> read_cmd()
-                    >> concurrent(100)
-                    >> ignore_inner_exception(handle_command() >> send_result())
+                    >> recv_cmd()
+                    >> concurrent(max_concurrency_per_session)
+                    >> ignore_inner_exception(
+                        handle_command() >> send_result()
+                    )
                     >> reduce()
                     >> pop_context();
             })

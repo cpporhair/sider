@@ -4,9 +4,12 @@ The goal of sider is to implement a redis-like kv store. Use nvme ssd to scale t
 
 sider uses its own std::execution(p2300) implementation ([pump](https://github.com/cpporhair/sider/tree/main/sider/pump)) as an asynchronous and concurrent framework.
 
-For learn more about p2300, see [here](https://github.com/brycelelbach/wg21_p2300_execution); 
+- For learn more about p2300, see [here](https://github.com/brycelelbach/wg21_p2300_execution); 
+- For a standard implementation of the p2300, see  [here](https://github.com/NVIDIA/stdexec).
 
-For a standard implementation of the p2300, see  [here](https://github.com/NVIDIA/stdexec).
+sider uses spdk to implement kernel bypass technology, taking full advantage of nvme's concurrency to speed up io.
+- For learn more about spdk, see [here](https://spdk.io);
+- In the file [apply.hh](https://github.com/cpporhair/sider/blob/main/sider/kv/apply.hh#L139) you can see how to combine asynchronous and concurrent tasks using the operators provided by pump.
 
 ```c++
 int
@@ -32,7 +35,7 @@ main(int argc, char **argv) {
 
 - [x] basic std::execution framework
 - [x] spdk-based io
-- [x] basic kv functions
+- [x] basic kv functions (get,put,scan)
 - [x] ycsb test and iops reaches hardware limit.
 - [x] batch
 - [ ] io_uring-based network

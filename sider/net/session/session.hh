@@ -1,17 +1,16 @@
 
-#ifndef SIDER_NET_RESP_SESSION_HH
-#define SIDER_NET_RESP_SESSION_HH
+#ifndef SIDER_NET_SESSION_SESSION_HH
+#define SIDER_NET_SESSION_SESSION_HH
 
 #include "spdk/memory.h"
 
 #include "3rd/ringbuf/ring_buf.hh"
 
-namespace sider::net::resp {
+namespace sider::net::session {
 
     const uint32_t cmd_type_unk     = 0;
     const uint32_t cmd_type_put     = 1;
     const uint32_t cmd_type_get     = 2;
-    const uint32_t cmd_type_scan    = 3;
 
     struct
     cmd {
@@ -42,6 +41,11 @@ namespace sider::net::resp {
     };
 
     struct
+    put_res {
+
+    };
+
+    struct
     get_cmd {
         uint32_t size{0};
         uint32_t type;
@@ -49,10 +53,8 @@ namespace sider::net::resp {
     };
 
     struct
-    scan_cmd {
-        uint32_t size{0};
-        uint32_t type;
-        char data[];
+    get_res {
+
     };
 
     struct
@@ -68,11 +70,23 @@ namespace sider::net::resp {
             : socket(fd) {
         }
 
+        [[nodiscard]]
         bool
-        has_full_command() {
-            return false;
+        has_full_command() const {
+            auto *p = std::find(cached_data->head, cached_data->tail, '\n');
+            return p != nullptr;
+        }
+
+        bool
+        is_lived() {
+            return true;
         }
     };
+
+    auto
+    make_session(int socket) {
+        return session(socket);
+    }
 }
 
-#endif //SIDER_NET_RESP_SESSION_HH
+#endif //SIDER_NET_SESSION_SESSION_HH

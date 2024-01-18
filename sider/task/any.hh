@@ -24,6 +24,12 @@ namespace sider::task {
 
     inline
     auto
+    start_on(uint32_t core) {
+        return ((scheduler*) nullptr)->get_scheduler();
+    }
+
+    inline
+    auto
     as_task() {
         return schedule_at_any_task();
     }

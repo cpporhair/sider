@@ -17,7 +17,7 @@
 #include "sider/kv/stop_db.hh"
 #include "sider/net/io_uring/wait_connection.hh"
 #include "sider/net/io_uring/recv.hh"
-#include "sider/net/resp/read_cmd.hh"
+#include "sider/net/session/read_cmd.hh"
 
 
 using namespace sider::coro;
@@ -25,7 +25,7 @@ using namespace sider::pump;
 using namespace sider::meta;
 using namespace sider::task;
 using namespace sider::net::io_uring;
-using namespace sider::net::resp;
+using namespace sider::net::session;
 using namespace sider::kv;
 
 constexpr uint32_t max_concurrency_per_session = 100;

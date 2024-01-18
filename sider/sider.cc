@@ -17,7 +17,7 @@
 #include "sider/kv/stop_db.hh"
 #include "sider/net/io_uring/wait_connection.hh"
 #include "sider/net/io_uring/recv.hh"
-#include "sider/net/resp/read_cmd.hh"
+#include "sider/net/session/read_cmd.hh"
 
 
 using namespace sider::coro;
@@ -25,27 +25,10 @@ using namespace sider::pump;
 using namespace sider::meta;
 using namespace sider::task;
 using namespace sider::net::io_uring;
-using namespace sider::net::resp;
+using namespace sider::net::session;
 using namespace sider::kv;
 
 constexpr uint32_t max_concurrency_per_session = 100;
-
-inline
-auto
-select_cmd(cmd&& c) {
-    using res = std::variant<put_cmd *, get_cmd *, scan_cmd *>;
-    auto *u = (unk_cmd *) &c;
-    switch (u->type) {
-        case cmd_type_get:
-            return res((get_cmd *) u);
-        case cmd_type_put:
-            return res((put_cmd *) u);
-        case cmd_type_scan:
-            return res((scan_cmd *) u);
-        default:
-            throw std::logic_error("unk_cmd");
-    }
-}
 
 inline
 auto
@@ -61,41 +44,75 @@ to_ke(get_cmd* c) {
 
 inline
 auto
-to_result() {
+to_result(put_cmd *c) {
+    return ignore_results();
+}
+
+inline
+auto
+to_result(get_cmd *c) {
     return ignore_results();
 }
 
 inline
 auto
 handle_command(put_cmd *c) {
-    return just() >> as_batch(put(to_kv(c)) >> apply() >> to_result());
+    return just()
+        >> as_batch(put(to_kv(c)) >> apply() >> ignore_results())
+        >> to_result(c);
 }
 
 inline
 auto
 handle_command(get_cmd *c) {
-    return just() >> as_batch(get(to_ke(c)) >> to_result());
+    return just() >> as_batch(get(to_ke(c)) >> ignore_results()) >> to_result(c);
 }
 
 inline
 auto
 handle_command(auto *c) {
-    return just();
+    static_assert(false);
 }
 
 inline
 auto
-handle_command() {
-    return then(select_cmd) >> visit()
-                            >> then([](auto&& a) { return handle_command(__fwd__(a)); })
-                            >> flat();
+handle() {
+    return flat_map([](auto &&a) { return handle_command(__fwd__(a)); });
 }
 
 inline
 auto
-send_result() {
+send_res() {
     return ignore_args();
 }
+
+auto
+until_session_closed_coro(session& s) -> empty_yields {
+    while (s.is_lived())
+        co_yield {};
+    co_return {};
+}
+
+inline
+auto
+until_session_closed() {
+    return get_context<session>()
+        >> then([](session &s) { return make_view_able(until_session_closed_coro(s)); })
+        >> for_each()
+        >> ignore_results();
+}
+
+inline
+auto
+until_session_closed(session &&s){
+    return [s = __fwd__(s)](auto&& b) mutable {
+        return with_context(__fwd__(s))(
+            until_session_closed()
+                >> __fwd__(b)
+                >> reduce()
+        );
+    };
+};
 
 int
 main(int argc, char **argv) {
@@ -103,17 +120,13 @@ main(int argc, char **argv) {
         return forever()
             >> flat_map(wait_connection)
             >> concurrent()
-            >> flat_map([](int socket){
-                return start_as_task()
-                    >> push_context(session{socket})
-                    >> forever()
-                    >> recv_cmd()
-                    >> concurrent(max_concurrency_per_session)
-                    >> ignore_inner_exception(
-                        handle_command() >> send_result()
-                    )
-                    >> reduce()
-                    >> pop_context();
+            >> flat_map([](int fd){
+                return start_on(random_core())
+                    >> until_session_closed(make_session(fd))(
+                        read_cmd()
+                            >> concurrent() >> pick_cmd() >> handle()
+                            >> sequential() >> send_res()
+                    );
             })
             >> reduce();
     });

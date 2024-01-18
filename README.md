@@ -2,7 +2,7 @@
 
 The goal of sider is to implement a redis-like kv store. Use nvme ssd to scale to larger capacities while maintaining speed!
 
-sider uses its own std::execution(p2300) implementation (pump) as an asynchronous and concurrent framework.
+sider uses its own std::execution(p2300) implementation ([pump](https://github.com/cpporhair/sider/tree/main/sider/pump)) as an asynchronous and concurrent framework.
 
 For learn more about p2300, see [here](https://github.com/brycelelbach/wg21_p2300_execution); 
 
@@ -16,9 +16,7 @@ For a standard implementation of the p2300, see  [here](https://github.com/NVIDI
 - [x] ycsb test and iops reaches hardware limit.
 - [x] batch
 - [ ] io_uring-based network
-- [ ] resp
 - [ ] cold and hot data separation
-- [ ] redis datatype
 
 
 ```c++
@@ -28,17 +26,13 @@ main(int argc, char **argv) {
         return forever()
             >> flat_map(wait_connection)
             >> concurrent()
-            >> flat_map([](int socket){
-                return start_as_task()
-                    >> push_context(session{socket})
-                    >> forever()
-                    >> recv_cmd()
-                    >> concurrent(max_concurrency_per_session)
-                    >> ignore_inner_exception(
-                        handle_command() >> send_result()
-                    )
-                    >> reduce()
-                    >> pop_context();
+            >> flat_map([](int fd){
+                return start_on(random_core())
+                    >> until_session_closed(make_session(fd))(
+                        read_cmd()
+                            >> concurrent() >> pick_cmd() >> handle()
+                            >> sequential() >> send_res()
+                    );
             })
             >> reduce();
     });

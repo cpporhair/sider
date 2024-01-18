@@ -441,14 +441,24 @@ namespace sider::pump::typed {
     template <typename context_t, typename scheduler_t>
     struct
     compute_sender_type<context_t, sider::kv::fs::_allocate::sender<scheduler_t>> {
-        using value_type = std::variant<sider::kv::fs::_allocate::leader_res *, sider::kv::fs::_allocate::follower_res>;
+        using value_type = sider::kv::fs::_allocate::leader_res *;//std::variant<sider::kv::fs::_allocate::leader_res *, sider::kv::fs::_allocate::follower_res>;
         constexpr static bool multi_values= false;
+        constexpr static bool has_value_type = true;
+    };
+
+    template <typename context_t, typename scheduler_t>
+    struct
+    compute_sender_type<context_t, sider::kv::fs::_metadata::sender<scheduler_t>> {
+        using value_type = sider::kv::fs::_metadata::leader_res *;//std::variant<sider::kv::fs::_allocate::leader_res *, sider::kv::fs::_allocate::follower_res>;
+        constexpr static bool multi_values= false;
+        constexpr static bool has_value_type = true;
     };
 
     template <typename context_t, typename scheduler_t>
     struct
     compute_sender_type<context_t, sider::kv::fs::_freepage::sender<scheduler_t>> {
         constexpr static bool multi_values= false;
+        constexpr static bool has_value_type = false;
     };
 }
 

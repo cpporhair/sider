@@ -76,7 +76,7 @@ handle_command(auto *c) {
 
 inline
 auto
-handle() {
+execute() {
     return flat_map([](auto &&a) { return handle_command(__fwd__(a)); });
 }
 
@@ -124,7 +124,7 @@ main(int argc, char **argv) {
                 return start_on(random_core())
                     >> until_session_closed(make_session(fd))(
                         read_cmd()
-                            >> concurrent() >> pick_cmd() >> handle()
+                            >> concurrent() >> pick_cmd() >> execute()
                             >> sequential() >> send_res()
                     );
             })

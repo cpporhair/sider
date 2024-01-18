@@ -145,9 +145,21 @@ namespace sider::pump {
         };
 
         template<typename context_t, typename sender_t, typename env_t>
+        requires compute_sender_type<context_t,sender_t>::has_value_type
+        struct
+        compute_sender_type<context_t, sider::pump::_get_context::sender<sender_t,env_t>> {
+            using value_type = std::tuple<env_t&, typename compute_sender_type<context_t,sender_t>::value_type>;
+            //constexpr static bool multi_values = false;
+            constexpr static bool multi_values = true;
+            constexpr static bool has_value_type = true;
+        };
+
+        template<typename context_t, typename sender_t, typename env_t>
+        requires (!compute_sender_type<context_t,sender_t>::has_value_type)
         struct
         compute_sender_type<context_t, sider::pump::_get_context::sender<sender_t,env_t>> {
             using value_type = env_t&;
+            //constexpr static bool multi_values = false;
             constexpr static bool multi_values = false;
             constexpr static bool has_value_type = true;
         };

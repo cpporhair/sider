@@ -65,7 +65,7 @@ namespace sider::pump {
             static
             void
             do_push_next(context_t& context, this_scope_t& scope, queue_item_type& item) {
-                switch(item.index_with_value()) {
+                switch(item.index()) {
                     case 0:
                         op_pusher<start_pos, this_scope_t>::push_skip(context, scope);
                         return;

@@ -129,6 +129,7 @@ namespace sider::pump {
             using sender_type   = compute_sender_type<context_t, sender_t>::value_type;
             using value_type    = compute_sender_type<context_t, sender_type>::value_type;
             constexpr static bool multi_values = false;
+            constexpr static bool has_value_type = true;
         };
 
         template <typename context_t, typename sender_t>
@@ -162,6 +163,7 @@ namespace sider::pump {
             >;
             using value_type    = compute_sender_type<context_t, sender_type>::value_type;
             constexpr static bool multi_values = false;
+            constexpr static bool has_value_type = true;
         };
 
         template <typename context_t, typename sender_t>

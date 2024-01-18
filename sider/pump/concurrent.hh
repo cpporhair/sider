@@ -592,6 +592,7 @@ namespace sider::pump {
         struct
         compute_sender_type<context_t, sider::pump::_concurrent::sender<prev_t>> {
             using value_type = compute_sender_type<context_t, prev_t>::value_type;
+            constexpr static bool has_value_type = true;
         };
     }
 

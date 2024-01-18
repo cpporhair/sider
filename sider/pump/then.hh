@@ -192,6 +192,7 @@ namespace sider::pump {
         struct
         compute_sender_type<context_t, sider::pump::_then::sender<sender_t,func_t>> {
             using value_type = std::invoke_result_t<func_t, typename compute_sender_type<context_t,sender_t>::value_type&&>;
+            constexpr static bool has_value_type = !std::is_void_v<value_type>;
             constexpr static bool multi_values = false;
         };
 
@@ -203,6 +204,7 @@ namespace sider::pump {
         struct
         compute_sender_type<context_t, sider::pump::_then::sender<sender_t,func_t>> {
             using value_type = std::invoke_result_t<func_t, std::decay_t<typename compute_sender_type<context_t,sender_t>::value_type>>;
+            constexpr static bool has_value_type = !std::is_void_v<value_type>;
             constexpr static bool multi_values = false;
         };
 
@@ -219,6 +221,7 @@ namespace sider::pump {
                     sender_t
                 >::value_type
             >;
+            constexpr static bool has_value_type = !std::is_void_v<value_type>;
             constexpr static bool multi_values = false;
         };
 
@@ -229,6 +232,7 @@ namespace sider::pump {
         struct
         compute_sender_type<context_t, sider::pump::_then::sender<sender_t,func_t>> {
             using value_type = std::invoke_result_t<func_t>;
+            constexpr static bool has_value_type = !std::is_void_v<value_type>;
             constexpr static bool multi_values = false;
         };
 
@@ -237,6 +241,7 @@ namespace sider::pump {
         struct
         compute_sender_type<context_t, sider::pump::_then::sender<sender_t, func_t>> {
             using value_type = std::invoke_result_t<func_t>;
+            constexpr static bool has_value_type = !std::is_void_v<value_type>;
             constexpr static bool multi_values = false;
         };
     }

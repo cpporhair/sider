@@ -8,17 +8,6 @@ For learn more about p2300, see [here](https://github.com/brycelelbach/wg21_p230
 
 For a standard implementation of the p2300, see  [here](https://github.com/NVIDIA/stdexec).
 
-#### **sider is still in development, not yet tested or used.**
-
-- [x] basic std::execution framework
-- [x] spdk-based io
-- [x] basic kv functions
-- [x] ycsb test and iops reaches hardware limit.
-- [x] batch
-- [ ] io_uring-based network
-- [ ] cold and hot data separation
-
-
 ```c++
 int
 main(int argc, char **argv) {
@@ -30,7 +19,7 @@ main(int argc, char **argv) {
                 return start_on(random_core())
                     >> until_session_closed(make_session(fd))(
                         read_cmd()
-                            >> concurrent() >> pick_cmd() >> handle()
+                            >> concurrent() >> pick_cmd() >> execute()
                             >> sequential() >> send_res()
                     );
             })
@@ -39,5 +28,16 @@ main(int argc, char **argv) {
     return 0;
 }
 ```
+#### **sider is still in development, not yet tested or used.**
+
+- [x] basic std::execution framework
+- [x] spdk-based io
+- [x] basic kv functions
+- [x] ycsb test and iops reaches hardware limit.
+- [x] batch
+- [ ] io_uring-based network
+- [ ] cuda support
+- [ ] cold and hot data separation
+
 
 Looking for job opportunities in c++ or database development (beijing or remote)

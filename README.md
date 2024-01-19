@@ -1,6 +1,6 @@
-# sider
+# sider | [中文](https://github.com/cpporhair/sider/blob/main/README.cn.md)
 
-The goal of sider is to implement a redis-like kv store. Use nvme ssd to scale to larger capacities while maintaining speed!
+The goal of sider is to build a redis-like kv store that scales using nvme ssd while maintaining similar speeds.
 
 ```c++
 int
@@ -30,7 +30,7 @@ sider has developed its own framework called "[pump](https://github.com/cpporhai
 
 sider uses spdk to implement kernel bypass technology, taking full advantage of nvme's concurrency to speed up io.
 - For learn more about spdk, see [here](https://spdk.io);
-- In the file [apply.hh](https://github.com/cpporhair/sider/blob/main/sider/kv/apply.hh#L139) you can see how to combine asynchronous and concurrent tasks using the operators provided by pump.
+- In the function [apply](https://github.com/cpporhair/sider/blob/main/sider/kv/apply.hh#L139) you can see how to combine asynchronous and concurrent tasks using the operators provided by pump.
 
 #### **sider is still in development, not yet tested or used.**
 

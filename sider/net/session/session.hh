@@ -34,27 +34,28 @@ namespace sider::net::session {
     };
 
     struct
-    put_cmd {
-        uint32_t size{0};
-        uint32_t type;
-        char data[];
+    put_res {
+        bool ok;
     };
 
     struct
-    put_res {
-
+    put_cmd {
+        uint32_t size{0};
+        uint32_t type{cmd_type_put};
+        char data[];
     };
 
     struct
     get_cmd {
         uint32_t size{0};
-        uint32_t type;
+        uint32_t type{cmd_type_get};
         char data[];
     };
 
     struct
     get_res {
-
+        uint32_t size;
+        char *data;
     };
 
     struct

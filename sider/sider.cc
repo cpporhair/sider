@@ -18,6 +18,8 @@
 #include "sider/net/io_uring/wait_connection.hh"
 #include "sider/net/io_uring/recv.hh"
 #include "sider/net/session/read_cmd.hh"
+#include "sider/net/session/until_session_closed.hh"
+#include "sider/net/session/send_result.hh"
 
 
 using namespace sider::coro;
@@ -79,40 +81,6 @@ auto
 execute() {
     return flat_map([](auto &&a) { return handle_command(__fwd__(a)); });
 }
-
-inline
-auto
-send_res() {
-    return ignore_args();
-}
-
-auto
-until_session_closed_coro(session& s) -> empty_yields {
-    while (s.is_lived())
-        co_yield {};
-    co_return {};
-}
-
-inline
-auto
-until_session_closed() {
-    return get_context<session>()
-        >> then([](session &s) { return make_view_able(until_session_closed_coro(s)); })
-        >> for_each()
-        >> ignore_results();
-}
-
-inline
-auto
-until_session_closed(session &&s){
-    return [s = __fwd__(s)](auto&& b) mutable {
-        return with_context(__fwd__(s))(
-            until_session_closed()
-                >> __fwd__(b)
-                >> reduce()
-        );
-    };
-};
 
 int
 main(int argc, char **argv) {

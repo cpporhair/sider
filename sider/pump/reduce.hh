@@ -41,7 +41,10 @@ namespace sider::pump {
                     return func(result, __fwd__(v)...);
                 }
                 else {
-                    static_assert(false, "reduce function must return bool or void");
+                    static_assert(
+                        std::is_same_v<bool, __typ__(func(result, __fwd__(v)...))>,
+                        "reduce function must return bool or void"
+                    );
                 }
             }
 

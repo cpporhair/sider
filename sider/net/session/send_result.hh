@@ -7,6 +7,8 @@
 
 #include "sider/pump/then.hh"
 
+#include "sider/net/io_uring/send.hh"
+
 namespace sider::net::session {
     inline
     auto
@@ -16,7 +18,12 @@ namespace sider::net::session {
 
     inline
     auto
-    send_put_res() {
+    send_put_res(put_res&& res) {
+        return pump::get_context<session>()
+            >> pump::then([res = __fwd__(res)](session &s) {
+                return io_uring::send(s.socket, nullptr, 0);
+            })
+            >> pump::flat();
     }
 
     inline

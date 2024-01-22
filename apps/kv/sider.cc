@@ -60,7 +60,15 @@ inline
 auto
 handle_command(put_cmd *c) {
     return just()
-        >> as_batch(put(to_kv(c)) >> apply() >> ignore_results())
+        >> with_context(c)([]() {
+            return as_batch()([]() {
+                return get_context<put_cmd *>()
+                    >> then(to_kv)
+                    >> put()
+                    >> apply()
+                    >> ignore_args();
+            });
+        })
         >> to_result(c);
 }
 

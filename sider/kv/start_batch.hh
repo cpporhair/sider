@@ -59,6 +59,22 @@ namespace sider::kv {
             >> pump::flat();
     }
 
+    template<uint32_t compile_id>
+    inline
+    auto
+    as_batch_with_compile_id() {
+        return [](auto &&func) mutable {
+            return pump::then([f = __fwd__(func)](auto &&...args) mutable {
+                    return pump::just()
+                        >> start_batch_with_compile_id<compile_id>()
+                        >> pump::forward_value(__fwd__(args)...)
+                        >> pump::ignore_inner_exception(f())
+                        >> finish_batch();
+                })
+                >> pump::flat();
+        };
+    }
+
 
 #define start_batch start_batch_with_compile_id<__COUNTER__>
 #define as_batch as_batch_with_compile_id<__COUNTER__>

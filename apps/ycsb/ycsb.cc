@@ -20,7 +20,6 @@
 #include "sider/kv/scan.hh"
 #include "sider/kv/stop_db.hh"
 #include "sider/kv/get.hh"
-#include "sider/net/io_uring/wait_connection.hh"
 
 
 
@@ -30,25 +29,26 @@
 using namespace sider::coro;
 using namespace sider::pump;
 using namespace sider::kv;
-using namespace sider::net::io_uring;
 using namespace ycsb;
+
+
+auto
+ycsb_kv_coro(uint64_t max) -> return_yields<uint64_t> {
+    for (uint64_t i = 0; i < max; ++i) {
+        co_yield i;
+    }
+    co_return max;
+}
 
 uint64_t max_key = 10000000;
 
 int
 main(int argc, char **argv){
     start_db(argc, argv)([](){
-        return assert_no_args()
-            >> with_context(statistic_helper(new statistic_data()), logger())(
-                start_statistic()
-                    >> generate_on(any_task_scheduler(), std::views::iota(uint64_t(0), max_key))
-                    >> output_statistics_per_sec()
-                    >> concurrent(10000)
-                    >> as_batch(make_kv() >> put() >> apply() >> statistic_put()) >> statistic_publish()
-                    >> count()
-                    >> stop_statistic()
-                    >> output_finally_statistics()
-            )
+        return with_context(statistic_helper(new statistic_data()), logger()) (load(max_key))
+            >> with_context(statistic_helper(new statistic_data()), logger()) (updt(max_key))
+            >> with_context(statistic_helper(new statistic_data()), logger()) (read(max_key))
+            >> with_context(statistic_helper(new statistic_data()), logger()) (scan(max_key))
             >> stop_db();
     });
     return 0;

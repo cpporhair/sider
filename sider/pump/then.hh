@@ -263,21 +263,12 @@ namespace sider::pump {
         return ignore_args();
     }
 
-    template <size_t size>
-    inline
-    auto
-    assert_args_count() {
-        return then([](auto&& ...args) {
-            if constexpr (size != sizeof...(args)) {
-                static_assert(false, "assert_no_args");
-            }
-        });
-    }
-
     inline
     auto
     assert_no_args() {
-        return assert_args_count<0>();
+        return then([](auto&& ...args) {
+            static_assert(0 == sizeof...(args), "assert_no_args");
+        });
     }
 
     template <typename ...value_t>
@@ -290,7 +281,7 @@ namespace sider::pump {
     static
     auto
     just_exception(exception_t&& e) {
-        return just() >> then([e = __fwd__(e)] mutable { throw __fwd__(e); });
+        return just() >> then([e = __fwd__(e)] () mutable { throw __fwd__(e); });
     }
 
     template <typename exception_t>

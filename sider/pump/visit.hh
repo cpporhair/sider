@@ -165,7 +165,7 @@ namespace sider::pump {
             static inline
             auto
             do_push_value(context_t& context, scope_t& scope, values_t&& ...v) {
-                static_assert(false);
+                static_assert(std::is_same_v<context_t, context_t>);
             }
 
             template <typename context_t, typename values_t>

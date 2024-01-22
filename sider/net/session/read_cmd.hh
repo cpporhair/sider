@@ -15,7 +15,7 @@ namespace sider::net::session {
         return pump::ignore_args()
             >> pump::get_context<session>()
             >> pump::then([](session &s) {
-                return sider::net::io_uring::recv(s.socket, &(s.pending_cmd.size), 4)
+                return io_uring::recv(s.socket, &(s.pending_cmd.size), 4)
                     >> pump::then([s](...) mutable {
                         s.pending_cmd.data = (void *) (new char[s.pending_cmd.size]);
                     });

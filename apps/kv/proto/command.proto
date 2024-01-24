@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+message msg_key {
+    optional bytes data = 1;
+}
+
+message msg_val {
+    optional bytes data = 1;
+}
+
+message msg_put_req {
+    msg_key k = 1;
+    msg_key v = 2;
+}
+
+message msg_get_req {
+    msg_key k = 1;
+}
+
+message msg_put_res {
+    bool succeed = 1;
+}
+
+message msg_get_res {
+    msg_key v = 1;
+}
+
+message msg_err_res {
+    uint32 code = 1;
+}
+
+enum msg_type {
+    put_req = 0;
+    get_req = 1;
+    err_res = 3;
+    put_res = 4;
+    get_res = 5;
+}
+
+message msg_request {
+    msg_type type =1;
+    optional msg_put_req put_req = 2;
+    optional msg_get_req get_req = 3;
+}
+
+message msg_result {
+    msg_type type =1;
+    optional msg_put_res put_res = 2;
+    optional msg_get_res get_res = 3;
+}

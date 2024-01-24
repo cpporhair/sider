@@ -5,13 +5,13 @@
 #ifndef SIDER_NET_IO_URING_WAIT_CONNECTION_HH
 #define SIDER_NET_IO_URING_WAIT_CONNECTION_HH
 
-#include "./accept_scheduler.hh"
+#include "./runtime.hh"
 
 namespace sider::net::io_uring {
     inline
     auto
     wait_connection() {
-        return ((accept_scheduler *) nullptr)->wait_connection();
+        return accept_schedulers.by_list[0]->wait_connection();
     }
 }
 

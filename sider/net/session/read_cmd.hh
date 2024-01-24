@@ -54,27 +54,6 @@ namespace sider::net::session {
     read_cmd() {
         return read_cmd_len() >> read_cmd_data() >> take_first_cmd();
     }
-
-    inline
-    auto
-    select_cmd_impl(cmd &&c) {
-        using res = std::variant<put_cmd *, get_cmd *>;
-        auto *u = (unk_cmd *) &c;
-        switch (u->type) {
-            case cmd_type_get:
-                return res((get_cmd *) u);
-            case cmd_type_put:
-                return res((put_cmd *) u);
-            default:
-                throw std::logic_error("unk_cmd");
-        }
-    }
-
-    inline
-    auto
-    pick_cmd() {
-        return pump::then(select_cmd_impl) >> pump::visit();
-    }
 }
 
 #endif //SIDER_NET_SESSION_READ_CMD_HH

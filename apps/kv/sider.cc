@@ -21,6 +21,8 @@
 #include "sider/net/session/until_session_closed.hh"
 #include "sider/net/session/send_result.hh"
 
+#include "./proto/command.pb.h"
+
 
 using namespace sider::coro;
 using namespace sider::pump;
@@ -32,55 +34,71 @@ using namespace sider::kv;
 
 constexpr uint32_t max_concurrency_per_session = 100;
 
+template <uint32_t tag_v>
+struct
+msg_with_tag {
+    msg_request req;
+    msg_request res;
+};
+
 inline
 auto
-to_kv(put_cmd* c) {
+to_kv_impl(const msg_put_req& c) {
     return data::key_value(nullptr);
 }
 
 inline
 auto
-to_ke(get_cmd* c) {
+to_kv(msg_with_tag<msg_type::put_req>& c) {
+    return to_kv_impl(c.req.put_req());
+}
+
+inline
+auto
+to_key(msg_with_tag<msg_type::get_req>& c) {
     return std::string("");
 }
 
 inline
 auto
-to_result(put_cmd *c) {
+to_result(msg_request& res) {
     return ignore_results();
 }
 
 inline
 auto
-to_result(get_cmd *c) {
-    return ignore_results();
-}
-
-inline
-auto
-handle_command(put_cmd *c) {
+handle_command(msg_with_tag<msg_type::put_req>&& c) {
     return just()
-        >> with_context(c)([]() {
+        >> with_context(__fwd__(c))([]() {
             return as_batch()([]() {
-                return get_context<put_cmd *>()
+                return get_context<msg_with_tag<msg_type::put_req>>()
                     >> then(to_kv)
                     >> put()
                     >> apply()
                     >> ignore_args();
             });
         })
-        >> to_result(c);
+        >> to_result(c.res);
 }
 
 inline
 auto
-handle_command(get_cmd *c) {
-    return just() >> as_batch(get(to_ke(c)) >> ignore_results()) >> to_result(c);
+handle_command(msg_with_tag<msg_type::get_req>&& c) {
+    return just()
+        >> with_context(__fwd__(c))([]() {
+            return as_batch()([]() {
+                return get_context<msg_with_tag<msg_type::get_req>>()
+                    >> then(to_key)
+                    >> get()
+                    >> ignore_results();
+            });
+        })
+        >> to_result(c.res);
 }
 
 inline
 auto
-handle_command(auto *c) {
+handle_command(auto&& c) {
     static_assert(false);
 }
 
@@ -88,6 +106,28 @@ inline
 auto
 execute() {
     return flat_map([](auto &&a) { return handle_command(__fwd__(a)); });
+}
+
+inline
+auto
+select_cmd_impl(cmd &&c) {
+    using res = std::variant<msg_with_tag<msg_type::put_req>, msg_with_tag<msg_type::get_req>>;
+    msg_request msg;
+    msg.ParseFromArray((void *) c.data, c.size);
+    switch (msg.type()) {
+        case msg_type::put_req:
+            return res(msg_with_tag<msg_type::put_req>{__mov__(msg), {}});
+        case msg_type::get_req:
+            return res(msg_with_tag<msg_type::get_req>{__mov__(msg), {}});
+        default:
+            throw std::logic_error("unk_cmd");
+    }
+}
+
+inline
+auto
+pick_cmd() {
+    return then(select_cmd_impl) >> visit();
 }
 
 int

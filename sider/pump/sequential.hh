@@ -2,8 +2,8 @@
 //
 //
 
-#ifndef SIDER_PUMP_SEQUENTIAL_HH
-#define SIDER_PUMP_SEQUENTIAL_HH
+#ifndef PUMP_SEQUENTIAL_HH
+#define PUMP_SEQUENTIAL_HH
 
 
 #include "./op_tuple_builder.hh"
@@ -12,7 +12,7 @@
 
 #include "3rd/moodycamel/concurrentqueue.h"
 
-namespace sider::pump {
+namespace pump {
 
     namespace _sequential {
 
@@ -214,7 +214,7 @@ namespace sider::pump {
 
             sequential_starter_builder(sequential_starter_builder&& rhs)
                 : parent_builder(__fwd__(rhs.parent_builder))
-                , stream_builder(__fwd__(rhs.stream_tuple)){
+                , stream_builder(__fwd__(rhs.stream_builder)){
             }
 
             template<typename pushed_op_t>
@@ -341,7 +341,7 @@ namespace sider::pump {
     namespace typed {
         template <typename context_t, typename prev_t>
         struct
-        compute_sender_type<context_t, sider::pump::_sequential::sender<prev_t>> {
+        compute_sender_type<context_t, pump::_sequential::sender<prev_t>> {
             using value_type = compute_sender_type<context_t, prev_t>::value_type;
         };
     }
@@ -357,4 +357,4 @@ namespace sider::pump {
 }
 
 
-#endif //SIDER_PUMP_SEQUENTIAL_HH
+#endif //PUMP_SEQUENTIAL_HH

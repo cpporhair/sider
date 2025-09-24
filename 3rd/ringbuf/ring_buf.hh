@@ -1,15 +1,15 @@
 #ifndef SIDER_RING_BUF_HH
 #define SIDER_RING_BUF_HH
 
-#include <stddef.h>
+#include <cstddef>
 #include <sys/types.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/param.h>
-#include <assert.h>
+#include <cassert>
 
 struct
 ringbuf_t {
@@ -25,7 +25,7 @@ ringbuf_reset(ringbuf_t* rb) {
 
 ringbuf_t*
 ringbuf_new(size_t capacity) {
-    ringbuf_t* rb = (ringbuf_t*)malloc(sizeof(struct ringbuf_t));
+    auto* rb = (ringbuf_t*)malloc(sizeof(struct ringbuf_t));
     if (rb) {
         rb->size = capacity + 1;
         rb->buf = (uint8_t*) malloc(rb->size);
@@ -34,7 +34,7 @@ ringbuf_new(size_t capacity) {
         }
         else {
             free(rb);
-            return 0;
+            return nullptr;
         }
     }
     return rb;
@@ -124,6 +124,34 @@ ringbuf_findchr(const struct ringbuf_t *rb, int c, size_t offset) {
 }
 
 size_t
+ringbuf_advance_head(ringbuf_t* dst, size_t len) {
+    const uint8_t *bufend = ringbuf_end(dst);
+    size_t nwritten = 0;
+    size_t count = MIN(len, ringbuf_buffer_size(dst));
+    int overflow = count > ringbuf_bytes_free(dst);
+
+    while (nwritten != count) {
+
+        /* don't copy beyond the end of the buffer */
+        assert(bufend > dst->head);
+        size_t n = MIN(bufend - dst->head, count - nwritten);
+        dst->head += n;
+        nwritten += n;
+
+        /* wrap? */
+        if (dst->head == bufend)
+            dst->head = dst->buf;
+    }
+
+    if (overflow) {
+        dst->tail = ringbuf_nextp(dst, dst->head);
+        assert(ringbuf_is_full(dst));
+    }
+
+    return nwritten;
+}
+
+size_t
 ringbuf_memset(ringbuf_t* dst, int c, size_t len) {
     const uint8_t *bufend = ringbuf_end(dst);
     size_t nwritten = 0;
@@ -178,7 +206,7 @@ ringbuf_memcpy_into(ringbuf_t* dst, const void *src, size_t count) {
 }
 
 ssize_t
-ringbuf_read(int fd, ringbuf_t* rb, size_t count) {
+ringbuf_read_from_fd(int fd, ringbuf_t* rb, size_t count) {
     const uint8_t *bufend = ringbuf_end(rb);
     size_t nfree = ringbuf_bytes_free(rb);
 
@@ -230,7 +258,7 @@ ringbuf_memcpy_from(void *dst, ringbuf_t* src, size_t count) {
 }
 
 ssize_t
-ringbuf_write(int fd, ringbuf_t* rb, size_t count) {
+ringbuf_write_to_fd(int fd, ringbuf_t* rb, size_t count) {
     size_t bytes_used = ringbuf_bytes_used(rb);
     if (count > bytes_used)
         return 0;

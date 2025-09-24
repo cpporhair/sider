@@ -4,21 +4,21 @@
 //
 //
 
-#ifndef SIDER_PUMP_THEN_HH
-#define SIDER_PUMP_THEN_HH
+#ifndef PUMP_THEN_HH
+#define PUMP_THEN_HH
 
 #include <utility>
 #include <exception>
 #include <tuple>
 
-#include "util/meta.hh"
+#include "./meta.hh"
 
 #include "./bind_back.hh"
 #include "./tuple_values.hh"
 #include "./compute_sender_type.hh"
 #include "./op_pusher.hh"
 
-namespace sider::pump {
+namespace pump {
     namespace _then{
         template <typename func_t>
         struct
@@ -190,7 +190,7 @@ namespace sider::pump {
                  && (! std::is_void_v<typename compute_sender_type<context_t, sender_t>::value_type>)
                  && (! std::is_pointer_v<typename compute_sender_type<context_t, sender_t>::value_type>)
         struct
-        compute_sender_type<context_t, sider::pump::_then::sender<sender_t,func_t>> {
+        compute_sender_type<context_t, pump::_then::sender<sender_t,func_t>> {
             using value_type = std::invoke_result_t<func_t, typename compute_sender_type<context_t,sender_t>::value_type&&>;
             constexpr static bool has_value_type = !std::is_void_v<value_type>;
             constexpr static bool multi_values = false;
@@ -202,7 +202,7 @@ namespace sider::pump {
                  && (! std::is_void_v<typename compute_sender_type<context_t, sender_t>::value_type>)
                  && (std::is_pointer_v<typename compute_sender_type<context_t, sender_t>::value_type>)
         struct
-        compute_sender_type<context_t, sider::pump::_then::sender<sender_t,func_t>> {
+        compute_sender_type<context_t, pump::_then::sender<sender_t,func_t>> {
             using value_type = std::invoke_result_t<func_t, std::decay_t<typename compute_sender_type<context_t,sender_t>::value_type>>;
             constexpr static bool has_value_type = !std::is_void_v<value_type>;
             constexpr static bool multi_values = false;
@@ -212,7 +212,7 @@ namespace sider::pump {
         requires has_value_type<compute_sender_type<context_t, sender_t>>
                  && (  mul_value_type<compute_sender_type<context_t, sender_t>>)
         struct
-        compute_sender_type<context_t, sider::pump::_then::sender<sender_t,func_t>> {
+        compute_sender_type<context_t, pump::_then::sender<sender_t,func_t>> {
             using value_type = std::invoke_result_t<
                 apply,
                 func_t,
@@ -230,7 +230,7 @@ namespace sider::pump {
                  && (! mul_value_type<compute_sender_type<context_t, sender_t>>)
                  && (std::is_void_v<typename compute_sender_type<context_t, sender_t>::value_type>)
         struct
-        compute_sender_type<context_t, sider::pump::_then::sender<sender_t,func_t>> {
+        compute_sender_type<context_t, pump::_then::sender<sender_t,func_t>> {
             using value_type = std::invoke_result_t<func_t>;
             constexpr static bool has_value_type = !std::is_void_v<value_type>;
             constexpr static bool multi_values = false;
@@ -239,7 +239,7 @@ namespace sider::pump {
         template<typename context_t, typename sender_t, typename func_t>
         requires (! has_value_type<compute_sender_type<context_t, sender_t>>)
         struct
-        compute_sender_type<context_t, sider::pump::_then::sender<sender_t, func_t>> {
+        compute_sender_type<context_t, pump::_then::sender<sender_t, func_t>> {
             using value_type = std::invoke_result_t<func_t>;
             constexpr static bool has_value_type = !std::is_void_v<value_type>;
             constexpr static bool multi_values = false;
@@ -263,12 +263,19 @@ namespace sider::pump {
         return ignore_args();
     }
 
+    template <size_t size>
+    inline
+    auto
+    assert_args_count() {
+        return then([](auto&& ...args) {
+            static_assert(size == sizeof...(args), "assert_no_args");
+        });
+    }
+
     inline
     auto
     assert_no_args() {
-        return then([](auto&& ...args) {
-            static_assert(0 == sizeof...(args), "assert_no_args");
-        });
+        return assert_args_count<0>();
     }
 
     template <typename ...value_t>
@@ -281,7 +288,7 @@ namespace sider::pump {
     static
     auto
     just_exception(exception_t&& e) {
-        return just() >> then([e = __fwd__(e)] () mutable { throw __fwd__(e); });
+        return just() >> then([e = __fwd__(e)] mutable { throw __fwd__(e); });
     }
 
     template <typename exception_t>
@@ -305,6 +312,6 @@ namespace sider::pump {
     }
 }
 
-#endif //SIDER_PUMP_THEN_HH
+#endif //PUMP_THEN_HH
 
 #pragma clang diagnostic pop

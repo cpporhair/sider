@@ -26,7 +26,7 @@
 #include "./statistic.hh"
 #include "./ycsb.hh"
 
-using namespace sider::coro;
+using namespace pump::coro;
 using namespace sider::pump;
 using namespace sider::kv;
 using namespace ycsb;

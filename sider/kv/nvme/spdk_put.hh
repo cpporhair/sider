@@ -66,7 +66,6 @@ namespace sider::kv::nvme {
             on_put_request_reset_sgl,
             on_put_request_next_sge
         );
-
         if(res < 0) [[unlikely]] {
             std::cout << res << std::endl;
             on_put_done(new spdk_put_callback_arg{req, ns, qp}, nullptr);

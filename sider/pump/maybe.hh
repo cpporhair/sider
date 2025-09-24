@@ -2,8 +2,8 @@
 //
 //
 
-#ifndef SIDER_PUMP_MAYBE_HH
-#define SIDER_PUMP_MAYBE_HH
+#ifndef PUMP_MAYBE_HH
+#define PUMP_MAYBE_HH
 
 #include <utility>
 #include <concepts>
@@ -12,7 +12,7 @@
 
 #include "./bind_back.hh"
 
-namespace sider::pump {
+namespace pump {
     namespace _maybe {
         template <bool need_value>
         struct
@@ -117,7 +117,7 @@ namespace sider::pump {
     namespace typed {
         template <typename context_t, typename sender_t>
         struct
-        compute_sender_type<context_t, sider::pump::_maybe::sender<true, sender_t>> {
+        compute_sender_type<context_t, pump::_maybe::sender<true, sender_t>> {
             using value_type    = compute_sender_type<context_t, sender_t>::value_type::value_type;
         };
     }
@@ -125,4 +125,4 @@ namespace sider::pump {
     inline constexpr _maybe::maybe maybe{};
     inline constexpr _maybe::maybe_not maybe_not{};
 }
-#endif //SIDER_PUMP_MAYBE_HH
+#endif //PUMP_MAYBE_HH

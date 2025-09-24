@@ -2,12 +2,12 @@
 //
 //
 
-#ifndef SIDER_PUMP_OP_POLLER_HH
-#define SIDER_PUMP_OP_POLLER_HH
+#ifndef PUMP_OP_POLLER_HH
+#define PUMP_OP_POLLER_HH
 
 #include <atomic>
 
-namespace sider::pump {
+namespace pump {
     namespace poller {
         struct
         op_poller_base {
@@ -29,4 +29,4 @@ namespace sider::pump {
     }
 }
 
-#endif //SIDER_PUMP_OP_POLLER_HH
+#endif //PUMP_OP_POLLER_HH

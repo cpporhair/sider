@@ -2,13 +2,13 @@
 //
 //
 
-#ifndef SIDER_PUMP_ON_HH
-#define SIDER_PUMP_ON_HH
+#ifndef PUMP_ON_HH
+#define PUMP_ON_HH
 
 #include "./flat.hh"
 #include "./then.hh"
 
-namespace sider::pump {
+namespace pump {
     template <typename sender_t>
     auto
     on(sender_t&& s) {
@@ -26,4 +26,4 @@ namespace sider::pump {
     }
 }
 
-#endif //SIDER_ON_HH
+#endif //MONISM_ON_HH

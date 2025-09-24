@@ -9,7 +9,7 @@
 #include <boost/noncopyable.hpp>
 #include "promise.hh"
 
-namespace sider::coro {
+namespace pump::coro {
     template <typename co_object_t>
     struct iterator : boost::noncopyable {
         co_object_t handle;
@@ -154,6 +154,6 @@ namespace sider::coro {
 }
 
 template<typename T>
-inline constexpr bool std::ranges::enable_view<sider::coro::co_view_able<T>> = true;
+inline constexpr bool std::ranges::enable_view<pump::coro::co_view_able<T>> = true;
 
 #endif //SIDER_GENERATOR_HH

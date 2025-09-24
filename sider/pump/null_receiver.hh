@@ -2,12 +2,12 @@
 //
 //
 
-#ifndef SIDER_PUMP_TEST_RECEIVER_HH
-#define SIDER_PUMP_TEST_RECEIVER_HH
+#ifndef PUMP_TEST_RECEIVER_HH
+#define PUMP_TEST_RECEIVER_HH
 
 #include "./op_pusher.hh"
 
-namespace sider::pump {
+namespace pump {
     struct
     null_receiver {
         constexpr static bool null_receiver_op = true;
@@ -55,4 +55,4 @@ namespace sider::pump {
     inline constexpr null_receiver the_null_receiver{};
 }
 
-#endif //SIDER_PUMP_TEST_RECEIVER_HH
+#endif //PUMP_TEST_RECEIVER_HH

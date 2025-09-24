@@ -1,4 +1,5 @@
 #include <exception>
+#include <list>
 #include "util/macro.hh"
 #include "pump/flat.hh"
 #include "pump/repeat.hh"
@@ -14,15 +15,15 @@
 #include "cuda_runtime.h"
 
 
-using namespace sider::coro;
+using namespace pump::coro;
 using namespace sider::pump;
 using namespace sider::meta;
 using namespace sider::cuda;
 
 #define N 10000000
-
+template <typename T>
 __global__
-void vector_add(float *out, float *a, float *b, int n) {
+void vector_add(T *out, T *a, T *b, int n) {
 
     for(int i = 0; i < n; i++){
         out[i] = a[i] * b[i];
@@ -30,12 +31,25 @@ void vector_add(float *out, float *a, float *b, int n) {
     printf("1111  %d,%d\n", (int) out[0], (int) out[1]);
 }
 
+struct
+compute_unit {
+    float *g_a, *g_b, *g_o;
+    cudaStream_t stream;
+};
 int
 main(int argc, char **argv) {
+
+
+    std::list<compute_unit*> units;
+    just()
+        >> for_each(units)
+        >> then([](compute_unit* u){
+
+        })
+        >> reduce();
+
     float *c_a, *c_b, *c_o;
     float *g_a, *g_b, *g_o;
-
-
 
     cudaStream_t stream{0};
     cudaStreamCreate(&stream);
@@ -44,6 +58,12 @@ main(int argc, char **argv) {
         >> then([&]() {
             c_a   = (float*)malloc(sizeof(float) * N);
             cudaMalloc((void **) &g_a, sizeof(float) * N);
+
+            cudaPointerAttributes attr;
+            auto e = cudaPointerGetAttributes(&attr, g_a);
+
+            memcpy(attr.devicePointer, c_a, sizeof(float) * N);
+
             c_b   = (float*)malloc(sizeof(float) * N);
             cudaMalloc((void **) &g_b, sizeof(float) * N);
             c_o   = (float*)malloc(sizeof(float) * N);

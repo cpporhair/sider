@@ -85,7 +85,7 @@ namespace ycsb::coro {
 
     auto
     load()
-    ->sider::coro::return_yields<sider::kv::opt_exit_coro_flag> {
+    ->pump::coro::return_yields<sider::kv::opt_exit_coro_flag> {
         just()
             >> as_task(task_any(), generate(make_ycsb_put_list()))
             >> concurrent()
@@ -109,19 +109,19 @@ namespace ycsb::coro {
 
     auto
     updt()
-    ->sider::coro::empty_yields {
+    ->pump::coro::empty_yields {
         co_return {};
     }
 
     auto
     read()
-    ->sider::coro::empty_yields {
+    ->pump::coro::empty_yields {
         co_return {};
     }
 
     auto
     scan()
-    ->sider::coro::empty_yields {
+    ->pump::coro::empty_yields {
 
         /*
         when_all(
@@ -186,7 +186,7 @@ namespace ycsb::coro {
 
     auto
     info()
-    ->sider::coro::return_yields<sider::kv::opt_exit_coro_flag>{
+    ->pump::coro::return_yields<sider::kv::opt_exit_coro_flag>{
         while (ycsb::g_statistic_data.put_count <= 0 && ycsb::g_statistic_data.get_count)
             co_yield sider::kv::opt_exit_coro_flag();
         auto n0 = std::chrono::steady_clock::now();

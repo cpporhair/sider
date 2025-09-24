@@ -2,8 +2,8 @@
 //
 //
 
-#ifndef SIDER_PUMP_WHEN_ALL_HH
-#define SIDER_PUMP_WHEN_ALL_HH
+#ifndef PUMP_WHEN_ALL_HH
+#define PUMP_WHEN_ALL_HH
 
 #include <variant>
 
@@ -15,7 +15,7 @@
 #include "./op_tuple_builder.hh"
 #include "./helper.hh"
 
-namespace sider::pump{
+namespace pump{
     template <typename ...value_t>
     struct
     when_all_res {
@@ -40,10 +40,10 @@ namespace sider::pump{
     };
 
     template <typename context_t, typename sender_t>
-    requires sider::pump::typed::has_value_type<sider::pump::typed::compute_sender_type<context_t,sender_t>>
+    requires pump::typed::has_value_type<pump::typed::compute_sender_type<context_t,sender_t>>
     struct
     when_all_compute<context_t, sender_t> {
-        using type = sider::pump::typed::compute_sender_type<context_t,sender_t>::value_type;
+        using type = pump::typed::compute_sender_type<context_t,sender_t>::value_type;
     };
 
     namespace _when_all {
@@ -373,10 +373,10 @@ namespace sider::pump{
     namespace typed {
         template<typename context_t, typename prev_t, typename ...sender_t>
         struct
-        compute_sender_type<context_t, sider::pump::_when_all::sender<prev_t, sender_t...>> {
+        compute_sender_type<context_t, pump::_when_all::sender<prev_t, sender_t...>> {
             constexpr static bool multi_values= true;
             using value_type = std::tuple<
-                typename sider::pump::when_all_res<
+                typename pump::when_all_res<
                     typename when_all_compute<context_t,sender_t>::type
                 >::type
                 ...
@@ -386,4 +386,4 @@ namespace sider::pump{
 
     inline constexpr _when_all::fn1 when_all{};
 }
-#endif //SIDER_PUMP_WHEN_ALL_HH
+#endif //PUMP_WHEN_ALL_HH

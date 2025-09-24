@@ -2,13 +2,13 @@
 //
 //
 
-#ifndef SIDER_PUMP_OP_PUSHER_HH
-#define SIDER_PUMP_OP_PUSHER_HH
+#ifndef PUMP_OP_PUSHER_HH
+#define PUMP_OP_PUSHER_HH
 
 #include "./any_context.hh"
 #include "./op_tuple_builder.hh"
 
-namespace sider::pump {
+namespace pump {
 
     template <typename ...op_t>
     using op_list_type = std::unique_ptr<std::tuple<op_t...>>;
@@ -136,4 +136,4 @@ namespace sider::pump {
         };
     }}
 
-#endif //SIDER_PUMP_OP_PUSHER_HH
+#endif //PUMP_OP_PUSHER_HH

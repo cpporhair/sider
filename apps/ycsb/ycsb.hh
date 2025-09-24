@@ -14,7 +14,7 @@
 #include "sider/pump/reduce.hh"
 #include "sider/pump/sequential.hh"
 #include "sider/pump/when_all.hh"
-#include "sider/coro/coro.hh"
+#include "sider/pump/coro/coro.hh"
 #include "sider/kv/start_db.hh"
 #include "sider/kv/start_batch.hh"
 #include "sider/kv/put.hh"
@@ -25,7 +25,10 @@
 #include "sider/kv/get.hh"
 
 namespace ycsb {
-    using namespace sider::pump;
+    using namespace pump::coro;
+    using namespace pump::meta;
+    using namespace pump;
+    using namespace sider;
     using namespace sider::kv;
 
     template<typename T>
@@ -78,7 +81,7 @@ namespace ycsb {
         });
     }
 
-    auto
+    inline auto
     load(uint64_t max) {
         return start_statistic()
             >> generate_on(any_task_scheduler(), std::views::iota(uint64_t(0), max))
@@ -90,7 +93,7 @@ namespace ycsb {
             >> output_finally_statistics();
     }
 
-    auto
+    inline auto
     updt(uint64_t max) {
         return start_statistic()
             >> generate_on(any_task_scheduler(), std::views::iota(uint64_t(0), max))
@@ -100,9 +103,12 @@ namespace ycsb {
             >> visit()
             >> then([max](auto &&res) {
                 if constexpr (is_put<__typ__(res)>)
-                    return just() >> as_batch( random_kv(max) >> put() >> apply() >> statistic_put());
+                    return as_batch( random_kv(max) >> put() >> apply() >> statistic_put());
                 else
-                    return just() >> as_batch(random_key(max) >> get() >> statistic_get());
+                    return as_batch(random_key(max) >> get() >> statistic_get());
+            })
+            >> then([](auto&& sender) {
+                return just() >> sender;
             })
             >> flat()
             >> reduce()
@@ -110,7 +116,7 @@ namespace ycsb {
             >> output_finally_statistics();
     }
 
-    auto
+    inline auto
     read(uint64_t max) {
         return start_statistic()
             >> generate_on(any_task_scheduler(), std::views::iota(uint64_t(0), max))
@@ -122,7 +128,7 @@ namespace ycsb {
             >> output_finally_statistics();
     }
 
-    auto
+    inline auto
     scan(uint64_t max) {
         return start_statistic()
             >> generate_on(any_task_scheduler(), std::views::iota(uint64_t(0), max / 50))

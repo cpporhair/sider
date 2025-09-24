@@ -2,13 +2,13 @@
 //
 //
 
-#ifndef SIDER_PUMP_TEST_SCHEDULE_HH
-#define SIDER_PUMP_TEST_SCHEDULE_HH
+#ifndef PUMP_TEST_SCHEDULE_HH
+#define PUMP_TEST_SCHEDULE_HH
 #include <thread>
 #include <future>
 #include <list>
 
-namespace sider::pump {
+namespace pump {
     namespace _test_schedule {
 
         template <typename scheduler_t>
@@ -67,7 +67,7 @@ namespace sider::pump {
 
         struct
         scheduler {
-            std::list<std::move_only_function<void(int)>> list;
+            std::list<util::ncpy_func<void(int)>> list;
             auto
             get_scheduler(uint32_t i){
                 return sender<scheduler>{this, i};
@@ -102,7 +102,7 @@ namespace sider::pump {
     namespace typed {
         template <typename context_t, typename sender_t>
         struct
-        compute_sender_type<context_t, sider::pump::_test_schedule::sender<sender_t>> {
+        compute_sender_type<context_t, pump::_test_schedule::sender<sender_t>> {
             using value_type = uint32_t;
         };
     }
@@ -110,4 +110,4 @@ namespace sider::pump {
 
     using test_scheduler = _test_schedule::scheduler;
 }
-#endif //SIDER_TEST_SCHEDULE_HH
+#endif //MONISM_TEST_SCHEDULE_HH

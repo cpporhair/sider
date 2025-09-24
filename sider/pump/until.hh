@@ -2,10 +2,10 @@
 //
 //
 
-#ifndef SIDER_PUMP_UNTIL_HH
-#define SIDER_PUMP_UNTIL_HH
+#ifndef PUMP_UNTIL_HH
+#define PUMP_UNTIL_HH
 
-namespace sider::pump {
+namespace pump {
 
 }
-#endif //SIDER_PUMP_UNTIL_HH
+#endif //PUMP_UNTIL_HH

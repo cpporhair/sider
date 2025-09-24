@@ -2,8 +2,8 @@
 //
 //
 
-#ifndef SIDER_PUMP_FOR_EACH_HH
-#define SIDER_PUMP_FOR_EACH_HH
+#ifndef PUMP_FOR_EACH_HH
+#define PUMP_FOR_EACH_HH
 
 #include <memory>
 #include <ranges>
@@ -15,7 +15,7 @@
 #include "./compute_sender_type.hh"
 #include "./bind_back.hh"
 
-namespace sider::pump {
+namespace pump {
     namespace _for_each_ranges {
         template <uint32_t pos, typename ranges_t>
         struct
@@ -279,9 +279,9 @@ namespace sider::pump {
             start(context_t& context, scope_t& scope) {
                 auto& op = std::get<pos>(scope->get_op_tuple());
                 if (!op.is_end())
-                    ::sider::pump::pusher::op_pusher<pos + 1, scope_t>::push_value(context, scope, op.poll_one());
+                    ::pump::pusher::op_pusher<pos + 1, scope_t>::push_value(context, scope, op.poll_one());
                 else
-                    ::sider::pump::pusher::op_pusher<pos + 1, scope_t>::push_done(context, scope);
+                    ::pump::pusher::op_pusher<pos + 1, scope_t>::push_done(context, scope);
             }
         };
 
@@ -375,14 +375,14 @@ namespace sider::pump {
     namespace typed {
         template <typename context_t, typename sender_t, std::ranges::viewable_range ranges_t>
         struct
-        compute_sender_type<context_t, sider::pump::_for_each_ranges::sender<sender_t, ranges_t>> {
+        compute_sender_type<context_t, pump::_for_each_ranges::sender<sender_t, ranges_t>> {
             using value_type = std::ranges::iterator_t<ranges_t>::value_type;
             constexpr static bool has_value_type = true;
         };
 
         template <typename context_t, typename sender_t>
         struct
-        compute_sender_type<context_t, sider::pump::_for_each_byargs::sender<sender_t>> {
+        compute_sender_type<context_t, pump::_for_each_byargs::sender<sender_t>> {
             using value_type = std::ranges::iterator_t<typename compute_sender_type<context_t, sender_t>::value_type>::value_type;
             constexpr static bool has_value_type = true;
             //using value_type = std::ranges::iterator_t<std::decay_t<typename compute_sender_type<context_t, sender_t>::value_type>>::value_type;
@@ -440,4 +440,4 @@ namespace sider::pump {
     }
 
 }
-#endif //SIDER_PUMP_FOR_EACH_HH
+#endif //PUMP_FOR_EACH_HH

@@ -1,7 +1,11 @@
-#ifndef SIDER_PUMP_REDUCE_HH
-#define SIDER_PUMP_REDUCE_HH
+//
+//
+//
 
-namespace sider::pump {
+#ifndef PUMP_REDUCE_HH
+#define PUMP_REDUCE_HH
+
+namespace pump {
 
     inline constexpr bool reduce_done = true;
     inline constexpr bool reduce_continue = false;
@@ -41,10 +45,7 @@ namespace sider::pump {
                     return func(result, __fwd__(v)...);
                 }
                 else {
-                    static_assert(
-                        std::is_same_v<bool, __typ__(func(result, __fwd__(v)...))>,
-                        "reduce function must return bool or void"
-                    );
+                    static_assert(false, "reduce function must return bool or void");
                 }
             }
 
@@ -262,7 +263,7 @@ namespace sider::pump {
     namespace typed {
         template <typename context_t, typename sender_t, typename result_t, typename func_t>
         struct
-        compute_sender_type<context_t, sider::pump::_reduce::reduce_sender<sender_t, result_t, func_t>> {
+        compute_sender_type<context_t, pump::_reduce::reduce_sender<sender_t, result_t, func_t>> {
             using value_type = result_t;
             constexpr static bool multi_values = false;
             constexpr static bool has_value_type = true;
@@ -270,7 +271,7 @@ namespace sider::pump {
 
         template <typename context_t, typename prev_t, template<typename...> class container_t>
         struct
-        compute_sender_type<context_t, sider::pump::_reduce::to_container_sender<prev_t, container_t>> {
+        compute_sender_type<context_t, pump::_reduce::to_container_sender<prev_t, container_t>> {
             using value_type = container_t<std::variant<
                 std::monostate,
                 std::exception_ptr,
@@ -336,4 +337,4 @@ namespace sider::pump {
     inline constexpr _reduce::to_container_fn<std::vector> to_vector{};
 }
 
-#endif //SIDER_PUMP_REDUCE_HH
+#endif //PUMP_REDUCE_HH

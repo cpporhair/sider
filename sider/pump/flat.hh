@@ -2,8 +2,8 @@
 //
 //
 
-#ifndef SIDER_PUMP_FLAT_HH
-#define SIDER_PUMP_FLAT_HH
+#ifndef PUMP_FLAT_HH
+#define PUMP_FLAT_HH
 
 
 #include <utility>
@@ -13,7 +13,7 @@
 #include "./op_pusher.hh"
 #include "./then.hh"
 
-namespace sider::pump {
+namespace pump {
     namespace _flat{
         struct
         op {
@@ -125,7 +125,7 @@ namespace sider::pump {
             >
         >
         struct
-        compute_sender_type<context_t, sider::pump::_flat::sender<sender_t>> {
+        compute_sender_type<context_t, pump::_flat::sender<sender_t>> {
             using sender_type   = compute_sender_type<context_t, sender_t>::value_type;
             using value_type    = compute_sender_type<context_t, sender_type>::value_type;
             constexpr static bool multi_values = false;
@@ -152,7 +152,7 @@ namespace sider::pump {
             >
         >
         struct
-        compute_sender_type<context_t, sider::pump::_flat::sender<sender_t>> {
+        compute_sender_type<context_t, pump::_flat::sender<sender_t>> {
             //__out_type_name__(sender_t);
             using sender_type   = std::variant_alternative_t<
                 0,
@@ -178,7 +178,7 @@ namespace sider::pump {
             >
         >)
         struct
-        compute_sender_type<context_t, sider::pump::_flat::sender<sender_t>> {
+        compute_sender_type<context_t, pump::_flat::sender<sender_t>> {
             constexpr static bool has_value_type = false;
             constexpr static bool multi_values = false;
         };
@@ -193,4 +193,4 @@ namespace sider::pump {
         return transform(__fwd__(f)) >> flat();
     }
 }
-#endif //SIDER_PUMP_FLAT_HH
+#endif //PUMP_FLAT_HH

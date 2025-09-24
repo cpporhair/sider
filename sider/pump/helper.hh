@@ -2,12 +2,12 @@
 //
 //
 
-#ifndef SIDER_PUMP_HELPER_HH
-#define SIDER_PUMP_HELPER_HH
+#ifndef PUMP_HELPER_HH
+#define PUMP_HELPER_HH
 
 #include <tuple>
 
-namespace sider::pump {
+namespace pump {
     inline
     auto
     tuple_to_tie(auto& t) {
@@ -15,4 +15,4 @@ namespace sider::pump {
     }
 }
 
-#endif //SIDER_PUMP_HELPER_HH
+#endif //PUMP_HELPER_HH

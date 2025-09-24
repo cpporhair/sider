@@ -13,8 +13,8 @@
 #include "sider/pump/compute_sender_type.hh"
 #include "sider/pump/op_tuple_builder.hh"
 #include "sider/pump/op_pusher.hh"
-#include "coro/object.hh"
-#include "coro/promise.hh"
+#include "pump/coro/object.hh"
+#include "pump/coro/promise.hh"
 
 
 namespace sider::task {
@@ -122,7 +122,7 @@ namespace sider::task {
     }
 }
 
-namespace sider::pump::pusher {
+namespace pump::pusher {
     template<uint32_t pos, typename scope_t>
     requires (pos < std::tuple_size_v<typename scope_t::element_type::op_tuple_type>)
     && (get_current_op_type_t<pos, scope_t>::task_op)
@@ -137,7 +137,7 @@ namespace sider::pump::pusher {
     };
 }
 
-namespace sider::pump::typed {
+namespace pump::typed {
     template <typename context_t, typename scheduler_t>
     struct
     compute_sender_type<context_t, sider::task::_tasks::sender<scheduler_t>> {

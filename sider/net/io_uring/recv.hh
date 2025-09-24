@@ -8,9 +8,17 @@
 #include "./session_scheduler.hh"
 
 namespace sider::net::io_uring {
+
+    inline
+    auto
+    recv(session_scheduler *scheduler, int socket, void *buf, uint32_t size){
+        return scheduler->recv(socket, buf, size);
+    }
+
+    inline
     auto
     recv(int socket, void* buf, uint32_t size) {
-        return ((session_scheduler *) nullptr)->recv(socket, buf, size);
+        return recv(chose_session_scheduler(socket), socket, buf, size);
     }
 }
 

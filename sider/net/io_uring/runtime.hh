@@ -13,6 +13,12 @@
 namespace sider::net::io_uring {
     util::scheduler_list<accept_scheduler>  accept_schedulers;
     util::scheduler_list<session_scheduler> session_schedulers;
+
+
+    auto
+    chose_session_scheduler(int fd) {
+        return session_schedulers.by_list[fd % session_schedulers.by_list.size()];
+    }
 }
 
 #endif //SIDER_NET_IO_URING_RUNTIME_HH

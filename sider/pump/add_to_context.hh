@@ -2,10 +2,10 @@
 //
 //
 
-#ifndef SIDER_PUMP_ADD_TO_CONTEXT_HH
-#define SIDER_PUMP_ADD_TO_CONTEXT_HH
+#ifndef PUMP_ADD_TO_CONTEXT_HH
+#define PUMP_ADD_TO_CONTEXT_HH
 
-namespace sider::pump {
+namespace pump {
     namespace _add_to_context {
         template <typename ...content_t>
         struct
@@ -34,4 +34,4 @@ namespace sider::pump {
     }
 }
 
-#endif //SIDER_PUMP_ADD_TO_CONTEXT_HH
+#endif //PUMP_ADD_TO_CONTEXT_HH

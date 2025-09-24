@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.27)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CUDA_STANDARD 23)
 set(DCMAKE_GENERATOR_PLATFORM 64)
 
-add_compile_options(-O3 )
+add_compile_options(-O0 )
 
 find_package(Boost)
 

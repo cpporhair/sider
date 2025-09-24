@@ -2,15 +2,15 @@
 //
 //
 
-#ifndef SIDER_PUMP_WHEN_SKIPPED_HH
-#define SIDER_PUMP_WHEN_SKIPPED_HH
+#ifndef PUMP_WHEN_SKIPPED_HH
+#define PUMP_WHEN_SKIPPED_HH
 
 #include <utility>
 #include <exception>
 
-#include "sider/util/macro.hh"
+#include "monism/util/macro.hh"
 
-namespace sider::pump {
+namespace pump {
     namespace _when_skipped {
         template <typename func_t>
         struct
@@ -110,7 +110,7 @@ namespace sider::pump {
         template <typename context_t, typename sender_t, typename func_t>
         requires has_value_type<compute_sender_type<context_t, sender_t>>
         struct
-        compute_sender_type<context_t, sider::pump::_when_skipped::sender<sender_t, func_t>> {
+        compute_sender_type<context_t, pump::_when_skipped::sender<sender_t, func_t>> {
             using value_type = compute_sender_type<context_t, sender_t>::value_type;
         };
     }
@@ -118,4 +118,4 @@ namespace sider::pump {
     inline constexpr _when_skipped::fn when_skipped{};
 }
 
-#endif //SIDER_PUMP_WHEN_SKIPPED_HH
+#endif //PUMP_WHEN_SKIPPED_HH

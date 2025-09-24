@@ -21,6 +21,7 @@
 #include "./data/exceptions.hh"
 #include "./as_task.hh"
 
+
 namespace sider::kv {
 
     auto
@@ -58,7 +59,7 @@ namespace sider::kv {
     write_data(data::write_span_list& list){
         return pump::for_each(list.spans)
             >> pump::concurrent()
-            >> pump::then([](data::write_span& span){ return nvme::put_span(span); })
+            >> pump::then(nvme::put_span)
             >> pump::flat()
             >> pump::all([](data::write_span& span){ return span.all_wrote(); })
             >> pump::then([](bool b){ if (!b) throw data::write_data_failed(); });
@@ -162,8 +163,8 @@ namespace sider::kv {
                         }
                     })
                     >> pump::flat()
-                    >> pump::ignore_all_exception();
-                    //>> cache_data_if_succeed(b);
+                    >> pump::ignore_all_exception()
+                    >> cache_data_if_succeed(b);
             })
             >> pump::flat();
     }

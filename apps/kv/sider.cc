@@ -23,10 +23,9 @@
 
 #include "./proto/command.pb.h"
 
-
-using namespace sider::coro;
-using namespace sider::pump;
-using namespace sider::meta;
+using namespace pump::coro;
+using namespace pump::meta;
+using namespace pump;
 using namespace sider::task;
 using namespace sider::net::io_uring;
 using namespace sider::net::session;
@@ -38,7 +37,7 @@ template <uint32_t tag_v>
 struct
 msg_with_tag {
     msg_request req;
-    msg_request res;
+    msg_result  res;
 };
 
 inline
@@ -61,7 +60,7 @@ to_key(msg_with_tag<msg_type::get_req>& c) {
 
 inline
 auto
-to_result(msg_request& res) {
+to_result(msg_result& res) {
     return ignore_results();
 }
 
@@ -90,16 +89,14 @@ handle_command(msg_with_tag<msg_type::get_req>&& c) {
                 return get_context<msg_with_tag<msg_type::get_req>>()
                     >> then(to_key)
                     >> get()
+                    >> get_context<msg_with_tag<msg_type::get_req>>()
+                    >> then([](msg_with_tag<msg_type::get_req>& env, sider::kv::data::key_value&& kv){
+                        return 0;
+                    })
                     >> ignore_results();
             });
         })
         >> to_result(c.res);
-}
-
-inline
-auto
-handle_command(auto&& c) {
-    static_assert(false);
 }
 
 inline
@@ -111,14 +108,14 @@ execute() {
 inline
 auto
 select_cmd_impl(cmd &&c) {
-    using res = std::variant<msg_with_tag<msg_type::put_req>, msg_with_tag<msg_type::get_req>>;
+    using res_t = std::variant<msg_with_tag<msg_type::put_req>, msg_with_tag<msg_type::get_req>>;
     msg_request msg;
     msg.ParseFromArray((void *) c.data, c.size);
     switch (msg.type()) {
         case msg_type::put_req:
-            return res(msg_with_tag<msg_type::put_req>{__mov__(msg), {}});
+            return res_t(msg_with_tag<msg_type::put_req>{__mov__(msg), {}});
         case msg_type::get_req:
-            return res(msg_with_tag<msg_type::get_req>{__mov__(msg), {}});
+            return res_t(msg_with_tag<msg_type::get_req>{__mov__(msg), {}});
         default:
             throw std::logic_error("unk_cmd");
     }
@@ -132,19 +129,20 @@ pick_cmd() {
 
 int
 main(int argc, char **argv) {
-    start_db(argc, argv)([](){
+    start_db(argc, argv)([](...){
         return forever()
-            >> flat_map(wait_connection)
-            >> concurrent()
-            >> flat_map([](int fd){
-                return start_on(random_core())
-                    >> until_session_closed(make_session(fd))(
-                        read_cmd()
-                            >> concurrent() >> pick_cmd() >> execute()
-                            >> sequential() >> send_res()
-                    );
-            })
-            >> reduce();
+               >> ignore_results()
+               >> flat_map(wait_connection)
+               >> concurrent()
+               >> flat_map([](int fd) {
+                   return start_on(random_core())
+                          >> until_session_closed(make_session(fd))(
+                              read_cmd()
+                                  >> concurrent() >> pick_cmd() >> execute()
+                                  >> sequential() >> send_res()
+                          );
+               })
+               >> reduce();
     });
     return 0;
 }

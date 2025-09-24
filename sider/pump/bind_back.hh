@@ -2,14 +2,14 @@
 //
 //
 
-#ifndef SIDER_PUMP_BIND_BACK_HH
-#define SIDER_PUMP_BIND_BACK_HH
+#ifndef PUMP_BIND_BACK_HH
+#define PUMP_BIND_BACK_HH
 
 #include <variant>
 #include <tuple>
-#include "sider/util/macro.hh"
+#include "./meta.hh"
 
-namespace sider::pump {
+namespace pump {
     namespace _bind_back {
         template <typename ...bind_backs_t>
         struct
@@ -114,4 +114,4 @@ namespace sider::pump {
     template<typename cpo_t, typename ...args_t>
     using bind_back = _bind_back::fn<cpo_t, args_t...>;
 }
-#endif //SIDER_PUMP_BIND_BACK_HH
+#endif //PUMP_BIND_BACK_HH

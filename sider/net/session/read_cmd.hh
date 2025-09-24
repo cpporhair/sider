@@ -29,7 +29,7 @@ namespace sider::net::session {
         return pump::ignore_args()
             >> pump::get_context<session>()
             >> pump::then([](session &s) mutable {
-                return sider::net::io_uring::recv(s.socket, s.pending_cmd.data, 4)
+                return sider::net::io_uring::recv(s.socket, s.pending_cmd.data, s.pending_cmd.size)
                     >> pump::then([s](...) mutable {
                         s.unhandled_cmd.push_back(__mov__(s.pending_cmd));
                         s.pending_cmd.reset();
@@ -53,6 +53,25 @@ namespace sider::net::session {
     auto
     read_cmd() {
         return read_cmd_len() >> read_cmd_data() >> take_first_cmd();
+    }
+
+    auto
+    pick_full_packet(const session& s) -> pump::coro::empty_yields {
+        while(!s.has_full_command())
+            co_yield {};
+        co_return {};
+    }
+
+    auto
+    wait_full_packet() {
+        return pump::get_context<session>()
+            >> pump::then([](session &s) {
+                return pump::for_each(pump::coro::make_view_able(pick_full_packet(s)))
+                    >> read_cmd()
+                    >> pump::reduce()
+                    >> take_first_cmd();
+            })
+            >> pump::flat();
     }
 }
 

@@ -2,15 +2,15 @@
 //
 //
 
-#ifndef SIDER_PUMP_JUST_HH
-#define SIDER_PUMP_JUST_HH
+#ifndef PUMP_JUST_HH
+#define PUMP_JUST_HH
 
 #include "./op_pusher.hh"
 #include "./compute_sender_type.hh"
 #include "./tuple_values.hh"
 #include "./op_tuple_builder.hh"
 
-namespace sider::pump {
+namespace pump {
     namespace _just {
         template <typename ...value_t>
         struct
@@ -141,30 +141,30 @@ namespace sider::pump {
     namespace typed {
         template <typename context_t, typename value_t>
         struct
-        compute_sender_type<context_t, sider::pump::_just::sender<value_t>> {
+        compute_sender_type<context_t, pump::_just::sender<value_t>> {
             using value_type = value_t;
             constexpr static bool has_value_type = true;
         };
 
         template <typename context_t>
         struct
-        compute_sender_type<context_t, sider::pump::_just::sender<>> {
+        compute_sender_type<context_t, pump::_just::sender<>> {
             constexpr static bool has_value_type = false;
         };
 
         template <typename context_t, typename value_t>
         struct
-        compute_context_type<context_t, sider::pump::_just::sender<value_t>> {
+        compute_context_type<context_t, pump::_just::sender<value_t>> {
             using type = context_t;
         };
 
         template <typename context_t>
         struct
-        compute_context_type<context_t, sider::pump::_just::sender<>> {
+        compute_context_type<context_t, pump::_just::sender<>> {
             using type = context_t;
         };
     }
 
     inline constexpr _just::fn just{};
 }
-#endif //SIDER_PUMP_JUST_HH
+#endif //PUMP_JUST_HH

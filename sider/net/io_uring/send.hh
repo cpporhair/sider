@@ -6,13 +6,19 @@
 #define SIDER_NET_IO_URING_SEND_HH
 
 #include <memory>
-#include "./session_scheduler.hh"
+#include "./runtime.hh"
 
 namespace sider::net::io_uring {
     inline
     auto
+    send(session_scheduler *scheduler, int socket, void *buf, uint32_t size) {
+        return scheduler->send(socket, buf, size);
+    }
+
+    inline
+    auto
     send(int socket, void* buf, uint32_t size) {
-        return ((session_scheduler *) nullptr)->send(socket, buf, size);
+        return send(chose_session_scheduler(socket), socket, buf, size);
     }
 }
 

@@ -2,16 +2,14 @@
 //
 //
 
-#ifndef SIDER_PUMP_SCOPE_HH
-#define SIDER_PUMP_SCOPE_HH
+#ifndef PUMP_SCOPE_HH
+#define PUMP_SCOPE_HH
 
 #include <cstdint>
 #include <memory>
 #include <atomic>
 
-#include "sider/util/macro.hh"
-
-namespace sider::pump {
+namespace pump {
 
     enum struct
     runtime_scope_type {
@@ -172,4 +170,4 @@ namespace sider::pump {
     }
 }
 
-#endif //SIDER_PUMP_SCOPE_HH
+#endif //PUMP_SCOPE_HH

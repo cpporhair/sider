@@ -2,12 +2,12 @@
 //
 //
 
-#ifndef SIDER_PUMP_VISIT_HH
-#define SIDER_PUMP_VISIT_HH
+#ifndef PUMP_VISIT_HH
+#define PUMP_VISIT_HH
 
 #include "./bind_back.hh"
 
-namespace sider::pump {
+namespace pump {
     namespace _visit {
         namespace not_value {
             struct
@@ -165,7 +165,7 @@ namespace sider::pump {
             static inline
             auto
             do_push_value(context_t& context, scope_t& scope, values_t&& ...v) {
-                static_assert(std::is_same_v<context_t, context_t>);
+                static_assert(false);
             }
 
             template <typename context_t, typename values_t>
@@ -249,7 +249,7 @@ namespace sider::pump {
             std::variant_alternative_t<0, typename compute_sender_type<context_t, sender_t>::value_type>
         >
         struct
-        compute_sender_type<context_t, sider::pump::_visit::not_value::sender<sender_t>> {
+        compute_sender_type<context_t, pump::_visit::not_value::sender<sender_t>> {
             using value_type = std::variant_alternative_t<0, typename compute_sender_type<context_t, sender_t>::value_type>;
             constexpr static bool has_value_type = true;
         };
@@ -260,7 +260,7 @@ namespace sider::pump {
             typename compute_sender_type<context_t, sender_t>::value_type
         >
         struct
-        compute_sender_type<context_t, sider::pump::_visit::not_value::sender<sender_t>> {
+        compute_sender_type<context_t, pump::_visit::not_value::sender<sender_t>> {
             using value_type = std::true_type;
             constexpr static bool has_value_type = true;
         };
@@ -268,7 +268,7 @@ namespace sider::pump {
         template<typename context_t, typename sender_t>
         requires std::is_pointer_v<typename compute_sender_type<context_t, sender_t>::value_type>
         struct
-        compute_sender_type<context_t, sider::pump::_visit::not_value::sender<sender_t>> {
+        compute_sender_type<context_t, pump::_visit::not_value::sender<sender_t>> {
             using value_type = typename compute_sender_type<context_t, sender_t>::value_type;
             constexpr static bool has_value_type = true;
         };
@@ -279,7 +279,7 @@ namespace sider::pump {
             std::variant_alternative_t<0, value_t>
         >
         struct
-        compute_sender_type<context_t, sider::pump::_visit::has_value::sender<sender_t, value_t>> {
+        compute_sender_type<context_t, pump::_visit::has_value::sender<sender_t, value_t>> {
             using value_type = std::tuple<
                 std::variant_alternative_t<0, typename compute_sender_type<context_t, sender_t>::value_type>,
                 typename compute_sender_type<context_t, sender_t>::value_type
@@ -294,7 +294,7 @@ namespace sider::pump {
             value_t
         >
         struct
-        compute_sender_type<context_t, sider::pump::_visit::has_value::sender<sender_t, value_t>> {
+        compute_sender_type<context_t, pump::_visit::has_value::sender<sender_t, value_t>> {
             using value_type = std::tuple<
                 std::true_type,
                 typename compute_sender_type<context_t, sender_t>::value_type
@@ -307,4 +307,4 @@ namespace sider::pump {
     inline constexpr _visit::fn visit{};
 }
 
-#endif //SIDER_PUMP_VISIT_HH
+#endif //PUMP_VISIT_HH

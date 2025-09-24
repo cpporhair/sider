@@ -2,8 +2,8 @@
 //
 //
 
-#ifndef SIDER_PUMP_SUBMIT_HH
-#define SIDER_PUMP_SUBMIT_HH
+#ifndef PUMP_SUBMIT_HH
+#define PUMP_SUBMIT_HH
 
 #include "./bind_back.hh"
 #include "./any_context.hh"
@@ -12,7 +12,7 @@
 #include "./op_poller.hh"
 #include "./just.hh"
 
-namespace sider::pump {
+namespace pump {
 
     namespace _submit {
         template<typename sender_t, typename receiver_t>
@@ -63,4 +63,4 @@ namespace sider::pump {
 
     inline constexpr _submit::fn submit{};
 }
-#endif //SIDER_PUMP_SUBMIT_HH
+#endif //PUMP_SUBMIT_HH

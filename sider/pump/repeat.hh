@@ -1,14 +1,18 @@
-#ifndef SIDER_PUMP_REPEAT_HH
-#define SIDER_PUMP_REPEAT_HH
+//
+//
+//
+
+#ifndef PUMP_REPEAT_HH
+#define PUMP_REPEAT_HH
 
 #include <ranges>
 
-#include "sider/pump/helper.hh"
+#include "./helper.hh"
 
 #include "./op_tuple_builder.hh"
 #include "./for_each.hh"
 
-namespace sider::pump {
+namespace pump {
     auto
     repeat(uint32_t count) {
         return for_each(std::views::iota(uint32_t(0),count));
@@ -16,8 +20,8 @@ namespace sider::pump {
 
     auto
     forever() {
-        return for_each(std::views::iota(uint32_t(0))) >> ignore_results();
+        return for_each(std::views::iota(uint32_t(0)));
     }
 }
 
-#endif //SIDER_PUMP_REPEAT_HH
+#endif //PUMP_REPEAT_HH

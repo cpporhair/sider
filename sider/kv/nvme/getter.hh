@@ -108,7 +108,7 @@ namespace sider::kv::nvme {
     }
 }
 
-namespace sider::pump::pusher {
+namespace pump::pusher {
     template<uint32_t pos, typename scope_t>
     requires (pos < std::tuple_size_v<typename scope_t::element_type::op_tuple_type>)
     && (get_current_op_type_t<pos, scope_t>::nvme_get_data_op)
@@ -123,7 +123,7 @@ namespace sider::pump::pusher {
     };
 }
 
-namespace sider::pump::typed {
+namespace pump::typed {
     template <typename context_t, typename scheduler_t>
     struct
     compute_sender_type<context_t, sider::kv::nvme::_get_data::sender<scheduler_t>> {

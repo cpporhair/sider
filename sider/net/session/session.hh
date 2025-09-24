@@ -7,11 +7,6 @@
 #include "3rd/ringbuf/ring_buf.hh"
 
 namespace sider::net::session {
-
-    const uint32_t cmd_type_unk     = 0;
-    const uint32_t cmd_type_put     = 1;
-    const uint32_t cmd_type_get     = 2;
-
     struct
     cmd {
         uint32_t size{0};
@@ -24,38 +19,6 @@ namespace sider::net::session {
         }
 
         cmd() = default;
-    };
-
-    struct
-    unk_cmd {
-        uint32_t size{0};
-        uint32_t type;
-        char data[];
-    };
-
-    struct
-    put_res {
-        bool ok;
-    };
-
-    struct
-    put_cmd {
-        uint32_t size{0};
-        uint32_t type{cmd_type_put};
-        char data[];
-    };
-
-    struct
-    get_cmd {
-        uint32_t size{0};
-        uint32_t type{cmd_type_get};
-        char data[];
-    };
-
-    struct
-    get_res {
-        uint32_t size;
-        char *data;
     };
 
     struct

@@ -59,10 +59,10 @@ namespace sider::cuda::common {
 
         struct
         fn {
-            template <typename sender_t>
+            template<typename sender_t>
             constexpr
             decltype(auto)
-            operator ()(sender_t&& sender,cudaStream_t stream) const {
+            operator()(sender_t &&sender, cudaStream_t stream) const {
                 return _wait_stream_done::sender<sender_t>{
                     __fwd__(sender),
                     stream
@@ -81,7 +81,7 @@ namespace sider::cuda::common {
     constexpr inline _wait_stream_done::fn wait_stream_done{};
 }
 
-namespace sider::pump::pusher {
+namespace pump::pusher {
     template<uint32_t pos, typename scope_t>
     requires (pos < std::tuple_size_v<typename scope_t::element_type::op_tuple_type>)
     && (get_current_op_type_t<pos, scope_t>::wait_stream_done)
@@ -111,9 +111,9 @@ namespace sider::pump::pusher {
     };
 }
 
-namespace sider::pump::typed {
+namespace pump::typed {
     template<typename context_t, typename sender_t>
-    requires compute_sender_type<context_t, sender_t>::has_Value_type
+    requires compute_sender_type<context_t, sender_t>::has_value_type
     struct
     compute_sender_type<context_t, sider::cuda::common::_wait_stream_done::sender<sender_t>> {
         constexpr static bool has_value_type = false;

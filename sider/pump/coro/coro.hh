@@ -12,7 +12,7 @@
 #include "object.hh"
 #include "generator.hh"
 
-namespace sider::coro {
+namespace pump::coro {
 
     using empty_yields = coro::co_object<coro::yields_promise<std::default_sentinel_t>>;
 
@@ -25,7 +25,7 @@ namespace sider::coro {
     template <typename handle_owner_t>
     auto
     make_await_able(handle_owner_t&& o){
-        return await_co_handle(std::exchange(o.handle, nullptr));
+        return await_co_handle(__fwd__(o));
     }
 
     auto

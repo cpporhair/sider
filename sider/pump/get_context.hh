@@ -2,11 +2,11 @@
 //
 //
 
-#ifndef SIDER_PUMP_GET_CONTEXT_HH
-#define SIDER_PUMP_GET_CONTEXT_HH
+#ifndef PUMP_GET_CONTEXT_HH
+#define PUMP_GET_CONTEXT_HH
 #include "./bind_back.hh"
 
-namespace sider::pump {
+namespace pump {
     namespace _get_context {
         template <typename ...env_t>
         struct
@@ -111,7 +111,7 @@ namespace sider::pump {
         template<typename context_t, typename sender_t, typename ...env_t>
         requires sender_has_single_value<context_t, sender_t>
         struct
-        compute_sender_type<context_t, sider::pump::_get_context::sender<sender_t,env_t...>> {
+        compute_sender_type<context_t, pump::_get_context::sender<sender_t,env_t...>> {
             constexpr static bool multi_values= true;
             using value_type = std::tuple<
                 env_t&...,
@@ -125,7 +125,7 @@ namespace sider::pump {
         template<typename context_t, typename sender_t, typename ...env_t>
         requires sender_has_multi_value<context_t, sender_t>
         struct
-        compute_sender_type<context_t, sider::pump::_get_context::sender<sender_t,env_t...>> {
+        compute_sender_type<context_t, pump::_get_context::sender<sender_t,env_t...>> {
             constexpr static bool multi_values= true;
             using value_type = tuple_push_front<
                 env_t &...,
@@ -138,7 +138,7 @@ namespace sider::pump {
 
         template<typename context_t, typename sender_t, typename ...env_t>
         struct
-        compute_sender_type<context_t, sider::pump::_get_context::sender<sender_t,env_t...>> {
+        compute_sender_type<context_t, pump::_get_context::sender<sender_t,env_t...>> {
             using value_type = std::tuple<env_t&...>;
             constexpr static bool multi_values = true;
             constexpr static bool has_value_type = true;
@@ -147,7 +147,7 @@ namespace sider::pump {
         template<typename context_t, typename sender_t, typename env_t>
         requires compute_sender_type<context_t,sender_t>::has_value_type
         struct
-        compute_sender_type<context_t, sider::pump::_get_context::sender<sender_t,env_t>> {
+        compute_sender_type<context_t, pump::_get_context::sender<sender_t,env_t>> {
             using value_type = std::tuple<env_t&, typename compute_sender_type<context_t,sender_t>::value_type>;
             //constexpr static bool multi_values = false;
             constexpr static bool multi_values = true;
@@ -157,16 +157,15 @@ namespace sider::pump {
         template<typename context_t, typename sender_t, typename env_t>
         requires (!compute_sender_type<context_t,sender_t>::has_value_type)
         struct
-        compute_sender_type<context_t, sider::pump::_get_context::sender<sender_t,env_t>> {
+        compute_sender_type<context_t, pump::_get_context::sender<sender_t,env_t>> {
             using value_type = env_t&;
-            //constexpr static bool multi_values = false;
             constexpr static bool multi_values = false;
             constexpr static bool has_value_type = true;
         };
 
         template<typename context_t, typename sender_t>
         struct
-        compute_sender_type<context_t, sider::pump::_get_context::sender<sender_t>> {
+        compute_sender_type<context_t, pump::_get_context::sender<sender_t>> {
             //using value_type = context_t&;
             using value_type = compute_context_type<context_t, sender_t>::type&;
             constexpr static bool multi_values = false;
@@ -180,4 +179,4 @@ namespace sider::pump {
 
     inline constexpr _get_context::fn<> get_full_context_object{};
 }
-#endif //SIDER_PUMP_GET_CONTEXT_HH
+#endif //PUMP_GET_CONTEXT_HH

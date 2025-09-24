@@ -2,10 +2,10 @@
 //
 //
 
-#ifndef SIDER_PUMP_ANY_CASE_HH
-#define SIDER_PUMP_ANY_CASE_HH
+#ifndef PUMP_ANY_CASE_HH
+#define PUMP_ANY_CASE_HH
 
-namespace sider::pump {
+namespace pump {
 
     namespace _any_case {
         template <typename func_t>
@@ -104,4 +104,4 @@ namespace sider::pump {
     }
 }
 
-#endif //SIDER_PUMP_ANY_CASE_HH
+#endif //PUMP_ANY_CASE_HH

@@ -5,7 +5,7 @@
 #ifndef SIDER_NET_SESSION_UNTIL_SESSION_CLOSED_HH
 #define SIDER_NET_SESSION_UNTIL_SESSION_CLOSED_HH
 
-#include "sider/coro/coro.hh"
+#include "pump/coro/coro.hh"
 #include "sider/pump/get_context.hh"
 #include "sider/pump/push_context.hh"
 #include "sider/pump/pop_context.hh"
@@ -17,7 +17,7 @@
 
 namespace sider::net::session {
     auto
-    until_session_closed_coro(session& s) -> coro::empty_yields {
+    until_session_closed_coro(session& s) -> pump::coro::empty_yields {
         while (s.is_lived())
             co_yield {};
         co_return {};

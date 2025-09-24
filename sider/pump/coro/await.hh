@@ -9,20 +9,18 @@
 #include <coroutine>
 #include <boost/noncopyable.hpp>
 
-namespace sider::coro {
+namespace pump::coro {
     template <typename handle_type>
     struct
     await_co_handle : boost::noncopyable {
         handle_type handle;
 
-        await_co_handle
-        (await_co_handle&& rhs) noexcept
-        :handle(rhs.handle){
+        await_co_handle (await_co_handle&& rhs) noexcept
+            :handle(__fwd__(rhs.handle)){
         }
         explicit
-        await_co_handle
-        (handle_type h)
-        :handle(h){
+        await_co_handle (handle_type&& h)
+            :handle(__fwd__(h)){
         }
 
         bool

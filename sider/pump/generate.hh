@@ -2,15 +2,15 @@
 //
 //
 
-#ifndef SIDER_PUMP_GENERATE_HH
-#define SIDER_PUMP_GENERATE_HH
+#ifndef PUMP_GENERATE_HH
+#define PUMP_GENERATE_HH
 
-#include "sider/coro/coro.hh"
+#include "./coro/coro.hh"
 
 #include "./for_each.hh"
 #include "./on.hh"
 
-namespace sider::pump {
+namespace pump {
     inline constexpr _for_each::fn generate{};
     inline constexpr _for_each::fn stream{};
     inline constexpr _for_each::fn range{};
@@ -26,4 +26,4 @@ namespace sider::pump {
     }
 }
 
-#endif //SIDER_PUMP_GENERATE_HH
+#endif //PUMP_GENERATE_HH

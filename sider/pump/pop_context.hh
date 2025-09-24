@@ -2,23 +2,23 @@
 //
 //
 
-#ifndef SIDER_PUMP_POP_CONTEXT_HH
-#define SIDER_PUMP_POP_CONTEXT_HH
+#ifndef PUMP_POP_CONTEXT_HH
+#define PUMP_POP_CONTEXT_HH
 
 #include "./bind_back.hh"
 #include "./push_context.hh"
 
-namespace sider::pump {
+namespace pump {
     namespace _pop_context {
 
-        template <uint32_t pos>
+        template <uint32_t matching_compile_id>
         struct
         op {
-            constexpr static uint32_t pop_pos = pos;
+            constexpr static uint32_t context_compile_id = matching_compile_id;
             constexpr static bool pop_context_op = true;
         };
 
-        template <uint32_t pos, typename prev_t>
+        template <uint32_t matching_compile_id, typename prev_t>
         struct
         __ncp__(sender) {
 
@@ -39,7 +39,7 @@ namespace sider::pump {
             inline
             auto
             make_op() {
-                return op<pos>{};
+                return op<matching_compile_id>{};
             }
 
             template<typename context_t>
@@ -57,7 +57,7 @@ namespace sider::pump {
             operator ()(sender_t&& sender) const {
                 return _pop_context::sender
                     <
-                        builder::compute_pop_context_sender_pos_v<0, sender_t>,
+                        builder::compute_matching_context_compile_id_v<0, sender_t>,
                         sender_t
                     >{ __fwd__(sender) };
             }
@@ -84,19 +84,15 @@ namespace sider::pump {
         struct
         op_pusher<pos, scope_t> : op_pusher_base<pos, scope_t>  {
 
-            constexpr static uint64_t pushed_id = get_current_op_type_t<pos, scope_t>::pop_pos;
+            constexpr static uint64_t context_compile_id = get_current_op_type_t<pos, scope_t>::context_compile_id;
 
             template<typename context_t, typename ...value_t>
             static inline
             void
             push_value(context_t& context, scope_t& scope, value_t&& ...v) {
-                if constexpr (!context_t::element_type::template has_id<pushed_id>()) {
-                    sider::pump::pusher::op_pusher<pos + 1, __typ__(scope)>::push_value(context, scope, __fwd__(v)...);
-                }
-                else {
-                    static_assert(context_t::element_type::pop_able,"context is root");
-                    sider::pump::pusher::op_pusher<pos + 1, __typ__(scope)>::push_value(context->base_context, scope, __fwd__(v)...);
-                }
+                static_assert(context_t::element_type::template has_id<context_compile_id>());
+                static_assert(context_t::element_type::pop_able,"context is root");
+                pump::pusher::op_pusher<pos + 1, __typ__(scope)>::push_value(context->base_context, scope, __fwd__(v)...);
 
             }
 
@@ -104,8 +100,8 @@ namespace sider::pump {
             static inline
             void
             push_exception(context_t& context, scope_t& scope, std::exception_ptr e) {
-                if constexpr (!context_t::element_type::template has_id<pushed_id>()) {
-                    sider::pump::pusher::op_pusher<pos + 1, __typ__(scope)>::push_exception(context, scope, e);
+                if constexpr (!context_t::element_type::template has_id<context_compile_id>()) {
+                    pump::pusher::op_pusher<pos + 1, __typ__(scope)>::push_exception(context, scope, e);
                 }
                 else {
                     static_assert(context_t::element_type::pop_able,"context is root");
@@ -118,8 +114,8 @@ namespace sider::pump {
             static inline
             void
             push_skip(context_t& context, scope_t& scope) {
-                if constexpr (!context_t::element_type::template has_id<pushed_id>()) {
-                    sider::pump::pusher::op_pusher<pos + 1, __typ__(scope)>::push_skip(context, scope);
+                if constexpr (!context_t::element_type::template has_id<context_compile_id>()) {
+                    pump::pusher::op_pusher<pos + 1, __typ__(scope)>::push_skip(context, scope);
                 }
                 else {
                     op_pusher<pos + 1, scope_t>::push_skip(context->base_context, scope);
@@ -130,8 +126,8 @@ namespace sider::pump {
             static inline
             void
             push_done(context_t& context, scope_t& scope) {
-                if constexpr (!context_t::element_type::template has_id<pushed_id>()) {
-                    sider::pump::pusher::op_pusher<pos + 1, __typ__(scope)>::push_done(context, scope);
+                if constexpr (!context_t::element_type::template has_id<context_compile_id>()) {
+                    pump::pusher::op_pusher<pos + 1, __typ__(scope)>::push_done(context, scope);
                 }
                 else {
                     static_assert(context_t::element_type::pop_able,"context is root");
@@ -145,18 +141,18 @@ namespace sider::pump {
         template <typename context_t, uint32_t pos, typename sender_t>
         requires has_value_type<compute_sender_type<context_t, sender_t>>
         struct
-        compute_sender_type<context_t, sider::pump::_pop_context::sender<pos, sender_t>> {
+        compute_sender_type<context_t, pump::_pop_context::sender<pos, sender_t>> {
             using value_type    = compute_sender_type<context_t, sender_t>::value_type;
         };
 
         template <typename context_t, uint32_t pos, typename sender_t>
         struct
-        compute_sender_type<context_t, sider::pump::_pop_context::sender<pos, sender_t>> {
+        compute_sender_type<context_t, pump::_pop_context::sender<pos, sender_t>> {
         };
 
         template <typename context_t, uint32_t pos, typename sender_t>
         struct
-        compute_context_type<context_t, sider::pump::_pop_context::sender<pos, sender_t>> {
+        compute_context_type<context_t, pump::_pop_context::sender<pos, sender_t>> {
             using type = compute_context_type<context_t, sender_t>::type::element_type::base_type;
         };
     }
@@ -176,4 +172,4 @@ namespace sider::pump {
 
 #define with_context with_context_with_id<__COUNTER__>
 }
-#endif //SIDER_PUMP_POP_CONTEXT_HH
+#endif //PUMP_POP_CONTEXT_HH

@@ -2,12 +2,12 @@
 //
 //
 
-#ifndef SIDER_PUMP_COMPUTE_SENDER_TYPE_HH
-#define SIDER_PUMP_COMPUTE_SENDER_TYPE_HH
+#ifndef PUMP_COMPUTE_SENDER_TYPE_HH
+#define PUMP_COMPUTE_SENDER_TYPE_HH
 
-#include "sider/util/meta.hh"
+#include "meta.hh"
 
-namespace sider::pump::typed {
+namespace pump::typed {
     template <typename context_t, typename sender_t>
     struct
     compute_context_type {
@@ -73,4 +73,4 @@ namespace sider::pump::typed {
     };
 }
 
-#endif //SIDER_COMPUTE_SENDER_TYPE_HH
+#endif //MONISM_COMPUTE_SENDER_TYPE_HH

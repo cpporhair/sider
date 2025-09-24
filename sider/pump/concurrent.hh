@@ -2,8 +2,8 @@
 //
 //
 
-#ifndef SIDER_PUMP_CONCURRENT_HH
-#define SIDER_PUMP_CONCURRENT_HH
+#ifndef PUMP_CONCURRENT_HH
+#define PUMP_CONCURRENT_HH
 
 #include <iostream>
 #include <mutex>
@@ -14,59 +14,23 @@
 #include "./submit.hh"
 #include "./then.hh"
 
-namespace sider::pump {
+namespace pump {
 
     namespace _concurrent {
         struct
-        __ncp__(concurrent_counter2) {
-            std::atomic<uint64_t> wait_count;
-            std::atomic<uint64_t> done_count;
-            bool source_done;
-
-            concurrent_counter2()
-                : wait_count(0)
-                , done_count(0)
-                , source_done(false){
-            }
-
-            inline
-            void
-            reset() {
-                source_done=false;
-                done_count = 0;
-                wait_count = 0;
-            }
-
-            inline
-            bool
-            is_done() {
-                return source_done && (wait_count == done_count);
-            }
-
-            inline
-            void
-            set_source_done(uint32_t all_count) {
-                wait_count.store(all_count);
-                source_done = true;
-            }
-
-            inline
-            bool
-            add_done(){
-                return done_count.fetch_add(1) >= (wait_count - 1);
-            }
-        };
-
-        struct
         __ncp__(concurrent_counter) {
-            std::mutex mu;
-            uint64_t wait_count;
-            uint64_t done_count;
+            std::atomic<uint64_t> counter;
             bool source_done;
 
+        private:
+            inline
+            bool
+            is_wait_eq_done(uint64_t test_value) {
+                return (test_value & 0x00000000FFFFFFFF) == ((test_value >> 32) & 0x00000000FFFFFFFF);
+            }
+        public:
             concurrent_counter()
-                : wait_count(0)
-                , done_count(0)
+                : counter(0)
                 , source_done(false){
             }
 
@@ -74,43 +38,42 @@ namespace sider::pump {
             void
             reset() {
                 source_done=false;
-                done_count = 0;
-                wait_count = 0;
+                counter.store(0);
             }
 
             inline
             bool
-            is_done() {
-                std::lock_guard<std::mutex> guard(mu);
-                bool res = source_done && (wait_count == done_count);
-                return res;
-            }
-
-            inline
-            bool
-            set_source_done(uint32_t all_count) {
-                std::lock_guard<std::mutex> guard(mu);
-                wait_count = all_count;
+            set_source_done(uint32_t count) {
                 source_done = true;
-                return source_done && (wait_count == done_count);
+                return add_wait(count);
             }
 
             inline
             bool
-            add_wait(){
-                std::lock_guard<std::mutex> guard(mu);
-                wait_count++;
-                bool res = source_done && (wait_count == done_count);
-                return res;
+            add_wait(uint32_t count = 1) {
+                uint64_t old_v, new_v = 0;
+                bool res = 0;
+                do {
+                    old_v = counter.load();
+                    new_v = old_v + ((uint64_t) count << 32);
+                    res = is_wait_eq_done(new_v);
+                } while (!counter.compare_exchange_weak(old_v, new_v, std::memory_order_relaxed));
+
+                return source_done && res;
             }
 
             inline
             bool
-            add_done(){
-                std::lock_guard<std::mutex> guard(mu);
-                done_count++;
-                bool res = source_done && (wait_count == done_count);
-                return res;
+            add_done(uint32_t count = 1){
+                uint64_t old_v, new_v = 0;
+                bool res = 0;
+                do {
+                    old_v = counter.load();
+                    new_v = old_v + count;
+                    res = is_wait_eq_done(new_v);
+                } while (!counter.compare_exchange_weak(old_v, new_v, std::memory_order_relaxed));
+
+                return source_done && res;;
             }
         };
 
@@ -156,38 +119,60 @@ namespace sider::pump {
             stream_op_tuple_t stream_op_tuple;
             concurrent_counter counter;
             std::atomic<uint32_t> count_of_values;
-            bool stream_done;
 
-            uint64_t now_pending;
-            uint64_t max_pending;
-            std::recursive_mutex mu;
+            std::atomic<uint64_t> now_pending;
+            const uint64_t max_pending;
 
             starter(stream_op_tuple_t&& ops, uint64_t max_count)
                 : stream_op_tuple(__fwd__(ops))
-                , stream_done(false)
                 , count_of_values(0)
-                , now_pending(0)
+                , now_pending(((uint64_t) max_count << 32) + 0)
                 , max_pending(max_count){
                 __must_rval__(ops);
             }
 
             starter(starter&& o) noexcept
                 : stream_op_tuple(__fwd__(o.stream_op_tuple))
-                , stream_done(o.stream_done)
                 , counter()
                 , count_of_values(0)
-                , now_pending(o.now_pending)
-                , max_pending(o.max_pending) {
+                , now_pending(o.now_pending.load())
+                , max_pending(o.max_pending){
                 __must_rval__(o);
             }
 
             starter(const starter& o) noexcept
                 : stream_op_tuple(o.stream_op_tuple)
-                , stream_done(o.stream_done)
                 , counter()
                 , count_of_values(0)
-                , now_pending(o.now_pending)
-                , max_pending(o.max_pending){
+                , max_pending(o.max_pending)
+                , now_pending(o.now_pending.load()){
+            }
+
+            inline
+            void
+            set_stream_done() {
+                uint64_t old_v, new_v = 0;
+                bool res = 0;
+                do {
+                    old_v = now_pending.load();
+                    new_v = old_v | uint64_t(1);
+                } while (!now_pending.compare_exchange_weak(old_v, new_v, std::memory_order_relaxed));
+            }
+
+            inline
+            bool
+            add_and_check_pending(uint32_t count = 1) {
+                uint64_t old_v, new_v = 0;
+                bool res = 0;
+                do {
+                    old_v = now_pending.load();
+                    if (old_v & uint64_t(1))
+                        return false;
+                    new_v = old_v + ((uint64_t)count << 32);
+                    res = (new_v >> 32) > max_pending;
+                } while (!now_pending.compare_exchange_weak(old_v, new_v, std::memory_order_relaxed));
+
+                return res;
             }
         };
     }
@@ -298,10 +283,10 @@ namespace sider::pump {
             static void
             set_done(context_t& context, scope_t& scope) {
                 auto& op = std::get<pos>(scope->get_op_tuple());
-                std::lock_guard<std::recursive_mutex> ss(op.mu);
-                op.stream_done = true;
+                op.set_stream_done();
             }
 
+            /*
             template<typename context_t>
             static void
             poll_next(context_t& context, scope_t& scope) {
@@ -313,20 +298,18 @@ namespace sider::pump {
                 __typ__(find_stream_starter(scope)) x = find_stream_starter(scope);
                 op_pusher<0 , __typ__(x)>::poll_next(context, x);
             }
+            */
 
             template<typename context_t, typename ...value_t>
             static inline
             void
             concurrent_impl(context_t& context, scope_t& scope) {
                 auto& op = std::get<pos>(scope->get_op_tuple());
-                std::lock_guard<std::recursive_mutex> ss(op.mu);
-                if (op.stream_done)
-                    return;
-                op.now_pending++;
-                if(op.now_pending > op.max_pending)
-                    return;
-                op_pusher<0 , __typ__(find_stream_starter(scope))>::poll_next(context, find_stream_starter(scope));
 
+                if (op.add_and_check_pending())
+                    return;
+                else
+                    op_pusher<0 , __typ__(find_stream_starter(scope))>::poll_next(context, find_stream_starter(scope));
             }
 
             template<typename context_t, typename ...value_t>
@@ -590,7 +573,7 @@ namespace sider::pump {
         >
         */
         struct
-        compute_sender_type<context_t, sider::pump::_concurrent::sender<prev_t>> {
+        compute_sender_type<context_t, pump::_concurrent::sender<prev_t>> {
             using value_type = compute_sender_type<context_t, prev_t>::value_type;
             constexpr static bool has_value_type = true;
         };
@@ -599,4 +582,4 @@ namespace sider::pump {
     inline constexpr _concurrent::fn concurrent{};
 }
 
-#endif //SIDER_PUMP_CONCURRENT_HH
+#endif //PUMP_CONCURRENT_HH

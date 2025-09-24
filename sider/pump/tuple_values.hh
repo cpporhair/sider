@@ -2,9 +2,9 @@
 //
 //
 
-#ifndef SIDER_PUMP_TUPLE_VALUES_HH
-#define SIDER_PUMP_TUPLE_VALUES_HH
-namespace sider::pump {
+#ifndef PUMP_TUPLE_VALUES_HH
+#define PUMP_TUPLE_VALUES_HH
+namespace pump {
     template <typename ...value_t>
     struct
     tuple_values {
@@ -14,4 +14,4 @@ namespace sider::pump {
         tuple_values(const tuple_values& rhs) : values(rhs.values){}
     };
 }
-#endif //SIDER_PUMP_TUPLE_VALUES_HH
+#endif //PUMP_TUPLE_VALUES_HH
